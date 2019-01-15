@@ -1,4 +1,4 @@
-/* 
+/*
     File: kernel.C
 
     Author: R. Bettati
@@ -7,7 +7,7 @@
 
     Date  : 2017/05/25
 
-    The "main()" function is the entry point for the kernel. 
+    The "main()" function is the entry point for the kernel.
 
 */
 
@@ -29,7 +29,7 @@ int main()
 {
 
   /* -- INITIALIZE CONSOLE */
-  Console::init(); 
+  Console::init();
   Console::puts("Initialized console.\n");
   Console::puts("\n");
 
@@ -39,9 +39,9 @@ int main()
   Console::puts("WELCOME TO MY KERNEL!\n");
   Console::puts("      ");
   Console::set_TextColor(GREEN, RED);
-  Console::puts("<NAME>\n");
-  
+  Console::puts("Hello My Name is Sulav Adhikari\n");
+
   /* -- LOOP FOREVER! */
   for(;;);
-  
+
 }
