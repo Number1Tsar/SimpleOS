@@ -41,15 +41,14 @@
 class ContFramePool {
 
 private:
-
-    unsigned long base_frame_no;            // the starting frame number of Frame pool
-    unsigned long n_frames;                 // number of frames allocated to this pool
-    unsigned long n_free_frames;            // number of free frames currently available
-    unsigned long info_frame_no;            // number of info frame. Usually first frame
-    unsigned int n_info_frames;             // number of such info frames.
-    unsigned char* bitmap;                  // bitmap structure that explains the layout of pool
-    ContFramePool* next;                    //  Pointer to next frame pool in system
-    ContFramePool* prev;                    // Pointer to previous frame pool in system.
+    unsigned long base_frame_no;  // the starting frame number of Frame pool
+    unsigned long n_frames; // number of frames allocated to this pool
+    unsigned long n_free_frames; // number of free frames currently available
+    unsigned long info_frame_no; // number of info frame. Usually first frame
+    unsigned int n_info_frames; // number of such info frames.
+    unsigned char* bitmap; // bitmap structure that explains the layout of pool
+    ContFramePool* next; //  Pointer to next frame pool in system
+    ContFramePool* prev; // Pointer to previous frame pool in system.
 
 public:
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE;

@@ -1,10 +1,10 @@
 /*
  File: cont_frame_pool.H
 
- Author: Sulav Adhikari
+ Author: R. Bettati
  Department of Computer Science
  Texas A&M University
- Date  : 31-01-2019
+ Date  : 17/02/04
 
  Description: Management of the CONTIGUOUS Free-Frame Pool.
 
@@ -41,27 +41,19 @@
 class ContFramePool {
 
 private:
-
-    unsigned long base_frame_no;            // the starting frame number of Frame pool
-    unsigned long n_frames;                 // number of frames allocated to this pool
-    unsigned long n_free_frames;            // number of free frames currently available
-    unsigned long info_frame_no;            // number of info frame. Usually first frame
-    unsigned int n_info_frames;             // number of such info frames.
-    unsigned char* bitmap;                  // bitmap structure that explains the layout of pool
-    ContFramePool* next;                    //  Pointer to next frame pool in system
-    ContFramePool* prev;                    // Pointer to previous frame pool in system.
-
+    /* -- DEFINE YOUR CONT FRAME POOL DATA STRUCTURE(s) HERE. */
+    unsigned long base_frame_no;
+    unsigned long n_frames;
+    unsigned long n_free_frames;
+    unsigned long info_frame_no;
+    unsigned int n_info_frames;
+    unsigned char* bitmap;
+    ContFramePool* next;
+    ContFramePool* prev;
 public:
+
+    // The frame size is the same as the page size, duh...
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE;
-
-    /*
-      We use 2 bits to represent a frame in this implementation
-    */
-    static const unsigned int BITS_PER_FRAME = 2;
-
-    /*
-      HEAD servers as the starting pointer to sequence of Frame pools
-    */
     static ContFramePool* HEAD;
 
     ContFramePool(unsigned long _base_frame_no,

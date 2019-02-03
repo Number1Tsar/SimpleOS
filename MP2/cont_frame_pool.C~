@@ -140,7 +140,8 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     allocation.
     30 MB = 7680 x 4 KB
   */
-  
+
+    //assert(_n_frames <= 7.5 * FRAME_SIZE);
     this->base_frame_no = _base_frame_no;
     this->n_frames = _n_frames;
     this->n_free_frames = _n_frames;
@@ -164,35 +165,25 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     11 -> frame is FREE
     00 -> frame is OCCUPIED
     10 -> frame is OCCUPIED and is START of sequence of frames
-    01 -> frame is INACCESSIBLE. Here used for frames from location 15MB to 16MB
+    01 -> Not assigned any value
     This implementation assumes total memory of 32MB and each Frame size of 4KB.
     This totals to maximum of 8K frames. Following above consideration, we require
     maximum of 16K bits to represent 32MB of memory.
     Considering 8 bit of memory width, we need array of 2K bytes (char) to represent
     bitmap. Since each page size is 4KB, entire bitmap can fit within single frame.
   */
-	
-	unsigned long n_info_frames_needed = (_n_info_frames)? _n_info_frames : ContFramePool::needed_info_frames(_n_frames);
-	
-	memset(bitmap,0xFF,ContFramePool::FRAME_SIZE*n_info_frames_needed);
-	
-    if(_info_frame_no == 0)
-    {
-	/*
+
+    memset(bitmap,0xFF,ContFramePool::FRAME_SIZE/8);
+  /*
       If frame info is internally stored, the first two bits are not available for
       get frame. They will be represented as OCCUPIED because they are not exactly
-      head of any sequence.
-	*/
-	  long n = n_info_frames_needed;
-	  unsigned int i = 0;
-	  while(n > 0)
-	  {
-		  if(n>4) bitmap[i] = bitmap[i] & 0x00;
-		  else bitmap[i] = bitmap[i] & (0x3F >> (2*((n-1)%4)));
-		  i++;
-		  n = n-4;
-	  }
-      n_free_frames -= n_info_frames_needed;
+      head of any sequence
+  */
+
+    if(_info_frame_no == 0)
+    {
+      bitmap[0] = 0x3F;
+      n_free_frames -= 1;
     }
 
   /*
@@ -237,14 +228,14 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
             unsigned int i = bitmap_index;
             while(frame_count)
             {
-				//mark them as OCCUPIED
+		//mark them as OCCUPIED
                 bitmap[i / 8] = bitmap[i / 8] & ((0x3F >> (i % 8)) | (0x3F << (8 - (i % 8))));
                 i+=2;
                 frame_count--;
                 n_free_frames--;
             }
             i = bitmap_index;
-			//mark as HEAD of frame sequence
+	    //mark as HEAD of frame sequence
             bitmap[i / 8] = (bitmap[i / 8] & ((0x3F >> (i % 8)) | (0x3F << (8 - (i % 8))))) | (0x80 >> (i%8));
             return (base_frame_no + i/2);
         }
@@ -253,22 +244,15 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 	return 0;
 }
 
-/*
- *  The method marks _n_frames from _base_frame_no as inaccessible. This method must only be called for that Frame pool 
- *  manager which contains the memory location 15MB to 16MB. It is duty of client to invoke this method as the mentioned 
- *  region is not marked by default.
- */ 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
   unsigned long i = _base_frame_no - base_frame_no;
   while(_n_frames)
   {
-	//marks them as INACCESSIBLE
     bitmap[i / 4] = (bitmap[i / 4] & ((0x3F >> 2*(i % 4)) | (0x3F << (8 - 2*(i % 4))))) | (0x40 >> (i%4));
     i++;
     _n_frames--;
-    n_free_frames--;
   }
 }
 

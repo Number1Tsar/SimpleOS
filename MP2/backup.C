@@ -126,8 +126,8 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
-ContFramePool* ContFramePool::HEAD = NULL;
 
+ContFramePool* ContFramePool::HEAD = NULL;
 
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_frames,
@@ -135,69 +135,41 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_info_frames)
 {
   /*
-    Out of the 32 MB of memory available, the first 2MB of memory is reserved
-    for system purpose, leaving only 30MB of memory available for frame
-    allocation.
-    30 MB = 7680 x 4 KB
+    Out of the 32MB memory available, first 2 MB is used for system purpose
+    leaving only 30 MB for acutal memory.
   */
-  
-    this->base_frame_no = _base_frame_no;
-    this->n_frames = _n_frames;
-    this->n_free_frames = _n_frames;
-    this->info_frame_no = _info_frame_no;
-    this->n_info_frames = _n_info_frames;
+    assert(_n_frames <= 7.5 * FRAME_SIZE);
+    base_frame_no = _base_frame_no;
+    n_frames = _n_frames;
+    n_free_frames = _n_frames;
+    info_frame_no = _info_frame_no;
+    n_info_frames = _n_info_frames;
     this->next = NULL;
     this->prev = NULL;
-
-  /*
-    _info_frame_no = 0 indicates where the frame management information is to be
-    allocated within the frame pool. Here we choose the first fram (base frame).
-    Otherwise a separete pool is allocated and info_frame_no of that pool is
-    given to store the information.
-  */
-
+    /*
+      _info_frame_no = 0 indicates the frame management information is to be
+      allocated within the frame pool. Here we choose the first fram (base frame).
+      Otherwise a separete pool is allocated and info_frame_no of that pool is
+      given to store the information.
+    */
     bitmap = (_info_frame_no == 0)? (unsigned char*) (base_frame_no * FRAME_SIZE) : (unsigned char*) (info_frame_no * FRAME_SIZE);
-  /*
-    For this implementation, we have every two bits of bitmap represent one
-    frame in the frame pool.
-    This implementation assumes following supposition
-    11 -> frame is FREE
-    00 -> frame is OCCUPIED
-    10 -> frame is OCCUPIED and is START of sequence of frames
-    01 -> frame is INACCESSIBLE. Here used for frames from location 15MB to 16MB
-    This implementation assumes total memory of 32MB and each Frame size of 4KB.
-    This totals to maximum of 8K frames. Following above consideration, we require
-    maximum of 16K bits to represent 32MB of memory.
-    Considering 8 bit of memory width, we need array of 2K bytes (char) to represent
-    bitmap. Since each page size is 4KB, entire bitmap can fit within single frame.
-  */
-	
-	unsigned long n_info_frames_needed = (_n_info_frames)? _n_info_frames : ContFramePool::needed_info_frames(_n_frames);
-	
-	memset(bitmap,0xFF,ContFramePool::FRAME_SIZE*n_info_frames_needed);
-	
+    /*
+      each bit of bitmap corresponds to a frame in pool. 1 indicates frame is free,
+      0 indicates the frame is in use.
+      Initially we set all the bits as free.
+    */
+    memset(bitmap,0xFF,n_frames/4);
+    /*
+      If frame info is internally stored, the first bit is not available for
+      get frame.
+      Set first bit as 0
+    */
     if(_info_frame_no == 0)
     {
-	/*
-      If frame info is internally stored, the first two bits are not available for
-      get frame. They will be represented as OCCUPIED because they are not exactly
-      head of any sequence.
-	*/
-	  long n = n_info_frames_needed;
-	  unsigned int i = 0;
-	  while(n > 0)
-	  {
-		  if(n>4) bitmap[i] = bitmap[i] & 0x00;
-		  else bitmap[i] = bitmap[i] & (0x3F >> (2*((n-1)%4)));
-		  i++;
-		  n = n-4;
-	  }
-      n_free_frames -= n_info_frames_needed;
+      bitmap[0] = 0x3F;
+      n_free_frames -= 1;
     }
 
-  /*
-    Add this frame pool to the frame pool list.
-  */
     if(ContFramePool::HEAD == NULL) ContFramePool::HEAD = this;
     else
     {
@@ -206,103 +178,75 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         this->prev = ptr;
         ptr->next = this;
     }
-
     Console::puts("Frame Pool initialized\n");
 }
 
-/*
-  Allocates _n_frames contiguous frames from frame pool and returns the starting
-  frame of the sequence. If unable to allocate memory, returns 0;
-*/
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    if(_n_frames > n_free_frames) return 0;
-    unsigned int bitmap_index = 0;
-    while(bitmap_index < (2 * n_frames))
-    {
-        unsigned int next_index = bitmap_index;
-        unsigned int frame_count = 0;
-        while( frame_count < _n_frames)
-        {
-            if((bitmap[next_index/8] & (0xC0 >> (next_index%8))) == (0xC0 >> (next_index%8))) frame_count++;
-            else break;
-            next_index += 2;
-        }
-        /*
-          indicates that required number of frames are available
-          Set them as OCCUPIED and return the starting frame location.
-        */
-        if(frame_count == _n_frames)
-        {
-            unsigned int i = bitmap_index;
-            while(frame_count)
-            {
-				//mark them as OCCUPIED
-                bitmap[i / 8] = bitmap[i / 8] & ((0x3F >> (i % 8)) | (0x3F << (8 - (i % 8))));
-                i+=2;
-                frame_count--;
-                n_free_frames--;
-            }
-            i = bitmap_index;
-			//mark as HEAD of frame sequence
-            bitmap[i / 8] = (bitmap[i / 8] & ((0x3F >> (i % 8)) | (0x3F << (8 - (i % 8))))) | (0x80 >> (i%8));
-            return (base_frame_no + i/2);
-        }
-        else bitmap_index = next_index + 2;
-    }
+	if(_n_frames > n_free_frames) return 0;
+	unsigned int i = 0;
+	while(i <  2*n_frames)
+	{
+		unsigned int j = i;
+		unsigned int valid = 0;
+		while(valid < _n_frames)
+		{
+			unsigned int mask =((0xC0) >> (j%8));
+			unsigned int c = bitmap[j/8] & mask;
+			if(c == mask) valid++;
+			else break;
+			j+=2;
+		}
+		if(valid == _n_frames)
+		{
+			unsigned int k = i;
+			while(valid)
+			{
+				bitmap[k / 8] = bitmap[k / 8] & ((0x3F >> (k % 8)) | (0x3F << (8 - (k % 8))));
+				valid--;
+				k+=2;
+				n_free_frames--;
+			}
+			bitmap[i / 8] = (bitmap[i / 8] & ((0x3F >> (i % 8)) | (0x3F << (8 - (i % 8))))) | (0x80 >> (i%8));
+			return (base_frame_no + i/2);
+		}
+		else i = j + 2;		
+	}
 	return 0;
 }
 
-/*
- *  The method marks _n_frames from _base_frame_no as inaccessible. This method must only be called for that Frame pool 
- *  manager which contains the memory location 15MB to 16MB. It is duty of client to invoke this method as the mentioned 
- *  region is not marked by default.
- */ 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
-  unsigned long i = _base_frame_no - base_frame_no;
-  while(_n_frames)
-  {
-	//marks them as INACCESSIBLE
-    bitmap[i / 4] = (bitmap[i / 4] & ((0x3F >> 2*(i % 4)) | (0x3F << (8 - 2*(i % 4))))) | (0x40 >> (i%4));
-    i++;
-    _n_frames--;
-    n_free_frames--;
-  }
+    assert(false);
 }
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
     ContFramePool* ptr = ContFramePool::HEAD;
-    // Identify which pool the frame belongs to
-    while(ptr!=NULL && (_first_frame_no < ptr->base_frame_no || _first_frame_no > ptr->base_frame_no + ptr->n_frames)) ptr = ptr->next;
+    while(ptr!=NULL && (_first_frame_no < ptr->base_frame_no || _first_frame_no > ptr->base_frame_no + ptr->n_frames))
+      ptr = ptr->next;
     if(ptr!=NULL)
     {
-        unsigned long diff = _first_frame_no - ptr->base_frame_no;
-        ptr->bitmap[diff/4] = ptr->bitmap[diff/4] | (0xC0 >> 2*(diff%4));
-        ptr->n_free_frames++;
-        diff++;
-        unsigned int c = ptr->bitmap[diff/4] & (0x80 >> (2*(diff%4)));
-        while(c!= (0x80 >> (2 * (diff % 4))))
-        {
-            ptr->bitmap[diff / 4] = ptr->bitmap[diff / 4] | (0xC0 >> 2 * (diff % 4));
-            ptr->n_free_frames++;
-            diff++;
-            c = ptr->bitmap[diff / 4] & (0x80 >> (2 * (diff % 4)));
-        }
-     }
+	unsigned long diff = _first_frame_no - ptr->base_frame_no;
+	ptr->bitmap[diff/4] = ptr->bitmap[diff/4] | (0xC0 >> 2*(diff%4));
+	ptr->n_free_frames++;
+    Console::puts("Frames Released\n");
+	diff++;
+	unsigned int c = ptr->bitmap[diff/4] & (0x80 >> (2*(diff%4)));
+	while(c!= (0x80 >> (2 * (diff % 4))))
+	{
+		ptr->bitmap[diff / 4] = ptr->bitmap[diff / 4] | (0xC0 >> 2 * (diff % 4));
+		ptr->n_free_frames++;
+    Console::puts("Frames Released\n");
+		diff++;
+		c = ptr->bitmap[diff / 4] & (0x80 >> (2 * (diff % 4)));
+	}
+    }
 }
 
-/*
-  The maximum number of frames that could be represented by this implementation
-  is 4K x 4 = 16K frames.
-  The total memory supported is 64MB which is exactly half of the memory supported
-  with 1 bit per frame bitmap implementation
-*/
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    unsigned long MAX_FRAMES = ContFramePool::FRAME_SIZE * (8/ContFramePool::BITS_PER_FRAME);
-    return (_n_frames/MAX_FRAMES) + (((_n_frames%MAX_FRAMES)>0)?1:0);
+    assert(false);
 }
 

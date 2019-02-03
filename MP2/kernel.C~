@@ -81,14 +81,11 @@ int main() {
     unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
 
     ContFramePool process_mem_pool(PROCESS_POOL_START_FRAME,
-                                   2560,//PROCESS_POOL_SIZE,
+                                   PROCESS_POOL_SIZE,
                                    process_mem_pool_info_frame,
                                    n_info_frames);
-									
-	ContFramePool dead_pool(3328,2560,0,0);
 
-    //process_mem_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
-    dead_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
+    process_mem_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
 
     /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
 
@@ -100,11 +97,9 @@ int main() {
 
     Console::puts("Kernel pool tested\n");
 
-    test_memory(&process_mem_pool,5,1);
+    test_memory(&process_mem_pool,80,1);
 
     Console::puts("Process pool tested\n");
-    
-    test_memory(&dead_pool,10,0);
 
     /* ---- Add code here to test the frame pool implementation. */
 

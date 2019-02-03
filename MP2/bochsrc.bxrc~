@@ -28,7 +28,6 @@ boot: floppy
 
 # where do we send log messages?
 log: bochsout.txt
-port_e9_hack: enabled=1
 
 # disable the mouse
 mouse: enabled=0
