@@ -172,6 +172,9 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     bitmap. Since each page size is 4KB, entire bitmap can fit within single frame.
   */
 	
+    /*
+     * Incase number of info frames in not specified, check explicitly how many frames will be necessary for the requested pool. 
+     */
 	unsigned long n_info_frames_needed = (_n_info_frames)? _n_info_frames : ContFramePool::needed_info_frames(_n_frames);
 	
 	memset(bitmap,0xFF,ContFramePool::FRAME_SIZE*n_info_frames_needed);
