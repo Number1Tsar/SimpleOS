@@ -83,6 +83,20 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-  assert(false);
+  unsigned long* page_dir = (unsigned long*) read_cr3();
+  unsigned long* curr_address = (unsigned long*) read_cr2();
+  if((page_dir[curr_address>>22] & 1) == 0)
+  {
+    unsigned long* page_table_ptr = (unsigned long*)(kernel_mem_pool->get_frames(1)* PAGE_SIZE);
+    for(int i=0;i<ENTRIES_PER_PAGE;i++)
+    {
+      page_table_ptr[i] = 0 | 2;
+    }
+    page_dir[curr_address >> 22] = (unsigned long)page_table_ptr;
+    page_dir[curr_address >> 22] = page_dir[curr_address >> 22] | 3;
+  }
+  unsigned long offset = ((curr_address>>12) & 0x3FF);
+  unsigned long* page_table_ptr = (unsigned long*)(page_dir[curr_address>>22] & 0xFFFFF000);
+  page_table_ptr[offset] = (unsigned long)(process_mem_pool->get_frames(1)*PAGE_SIZE) | 3;
   Console::puts("handled page fault\n");
 }

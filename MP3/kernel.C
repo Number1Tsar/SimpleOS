@@ -163,7 +163,6 @@ int main() {
     /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
 
     Console::puts("Hello World!\n");
-    while(1);
 
     /* -- GENERATE MEMORY REFERENCES */
 
