@@ -106,7 +106,6 @@ void PageTable::enable_paging()
 */
 void PageTable::handle_fault(REGS * _r)
 {
-<<<<<<< HEAD
   unsigned long* current_page_directory = (unsigned long*) read_cr3();
   unsigned long current_address = read_cr2();
   /*
@@ -119,13 +118,6 @@ void PageTable::handle_fault(REGS * _r)
        we simply create a new page and add it to the page table.
   */
   if((current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] & 1) == 0)
-=======
-  unsigned long* page_dir = (unsigned long*) read_cr3();
-  unsigned long curr_address = read_cr2();
-  unsigned long page_directory_number = curr_address >> 22;
-  unsigned long page_table_number = curr_address >> 12;
-  if((page_dir[page_directory_number] & 1) == 0)
->>>>>>> 302f6ea50f1d20348740dbb07f096c81d4232c70
   {
     unsigned long* page_table_ptr = (unsigned long*)(kernel_mem_pool->get_frames(1)* PAGE_SIZE);
     unsigned int i = 0;
@@ -133,13 +125,8 @@ void PageTable::handle_fault(REGS * _r)
     current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] = (unsigned long)page_table_ptr;
     current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] = current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] | 3;
   }
-<<<<<<< HEAD
   unsigned long offset = ((current_address >> PAGETABLE_OFFSET) & 0x3FF);
   unsigned long* page_table_ptr = (unsigned long*)(current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] & 0xFFFFF000);
-=======
-  unsigned long offset = (page_table_number & 0x3FF);
-  unsigned long* page_table_ptr = (unsigned long*)(page_dir[page_directory_number] & 0xFFFFF000);
->>>>>>> 302f6ea50f1d20348740dbb07f096c81d4232c70
   page_table_ptr[offset] = (unsigned long)(process_mem_pool->get_frames(1)*PAGE_SIZE) | 3;
   Console::puts("handled page fault\n");
 }
