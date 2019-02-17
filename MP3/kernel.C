@@ -164,6 +164,16 @@ int main() {
 
     Console::puts("Hello World!\n");
 
+    Console::puts("Accessing direct access region!\n");
+
+    int* loc = (int*) 0x00208000;
+
+    *loc = 44;
+
+    Console::putui(*loc);
+
+    Console::puts("Read from direct access region!\n");
+
     /* -- GENERATE MEMORY REFERENCES */
 
     int *foo = (int *) FAULT_ADDR;

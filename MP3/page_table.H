@@ -37,6 +37,21 @@
 /* P A G E - T A B L E  */
 /*--------------------------------------------------------------------------*/
 
+/*
+  Macros
+*/
+/*
+  The first 10 bits of address are used to identify one of the 1024 page tables.
+  Masking these bits requires right shifting them by 22 bits.
+*/
+#define PAGE_DIRECTORY_OFFSET 22;
+
+/*
+  The next 10 bits of address are used to identify a particular page in page table.
+  Masking these bits requires right shifting them by 12 bits and ANDing with 0x3FF
+*/
+#define PAGETABLE_OFFSET 12;
+
 class PageTable {
 
 private:
@@ -52,9 +67,9 @@ private:
   unsigned long        * page_directory;     /* where is page directory located? */
 
 public:
-  static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE; 
+  static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE;
   /* in bytes */
-  static const unsigned int ENTRIES_PER_PAGE = Machine::PT_ENTRIES_PER_PAGE; 
+  static const unsigned int ENTRIES_PER_PAGE = Machine::PT_ENTRIES_PER_PAGE;
   /* in entries, duh! */
 
   static void init_paging(ContFramePool * _kernel_mem_pool,
@@ -65,10 +80,10 @@ public:
   PageTable();
   /* Initializes a page table with a given location for the directory and the
      page table proper.
-     NOTE: The PageTable object still needs to be stored somewhere! 
-     Probably it is best to have it on the stack, as there is no 
+     NOTE: The PageTable object still needs to be stored somewhere!
+     Probably it is best to have it on the stack, as there is no
      memory manager yet...
-     NOTE2: It may also be simpler to create the first page table *before* 
+     NOTE2: It may also be simpler to create the first page table *before*
      paging has been enabled.
   */
 
@@ -88,4 +103,3 @@ public:
 };
 
 #endif
-
