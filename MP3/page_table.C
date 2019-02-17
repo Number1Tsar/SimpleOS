@@ -58,16 +58,26 @@ PageTable::PageTable()
    Console::puts("Constructed Page Table object\n");
 }
 
-
+/*
+  load the page_directory of this process to CR3 register.
+  This is to be done every time new process is set up and every time
+  context switching is triggered. For our case only the first reason is
+  relevant.
+*/
 void PageTable::load()
 {
-   assert(false);
+   current_page_table = this;
+   write_cr3((unsigned long) page_directory);
    Console::puts("Loaded page table\n");
 }
 
+/*
+  Enable paging. Set the first bit of CR0 register to 1
+*/
 void PageTable::enable_paging()
 {
-   assert(false);
+   write_cr0(read_cr0()|0x80000000);
+   paging_enabled = 1;
    Console::puts("Enabled paging\n");
 }
 
