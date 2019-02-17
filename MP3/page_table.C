@@ -49,7 +49,7 @@ PageTable::PageTable()
    /*
     Entering the page table into first entry of page directory.
    */
-   page_directory[0] = page_table_ptr;
+   page_directory[0] = (unsigned long)page_table_ptr;
    page_directory[0] = page_directory[0] | 3;
    for(i=1;i<ENTRIES_PER_PAGE;i++)
    {
