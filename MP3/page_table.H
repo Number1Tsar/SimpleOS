@@ -57,6 +57,18 @@ public:
   /* in bytes */
   static const unsigned int ENTRIES_PER_PAGE = Machine::PT_ENTRIES_PER_PAGE;
   /* in entries, duh! */
+  
+  /*
+    The first 10 bits of address are used to identify one of the 1024 page tables.
+    Masking these bits requires right shifting them by 22 bits.
+  */
+  static const unsigned int PAGE_DIRECTORY_OFFSET  = 22;
+
+  /*
+    The next 10 bits of address are used to identify a particular page in page table.
+    Masking these bits requires right shifting them by 12 bits and ANDing with 0x3FF
+  */
+  static const unsigned int PAGETABLE_OFFSET  = 12;
 
   /*
     The first 10 bits of address are used to identify one of the 1024 page tables.
