@@ -46,9 +46,6 @@ PageTable::PageTable()
     Page Directory in this case can be fit in 1 frame size.So allocating 1 frame
     from kernel frame pool to store page directory table.
   */
-  /*
-  MP4 changes : instead of getting frames from kernel pool, now we get from Process pool.
-  */
    page_directory = (unsigned long*)(process_mem_pool->get_frames(1) * PAGE_SIZE);
    /*
     The first 4MB of the memory is to be directly mapped, i.e no page faults should occur.
@@ -74,7 +71,6 @@ PageTable::PageTable()
    {
      page_directory[i] = 0 | 2;
    }
-   //Recursive page directory access Enabled
    page_directory[1023] = (unsigned long)page_directory | 3;
    Console::puts("Constructed Page Table object\n");
 }
@@ -111,7 +107,7 @@ void PageTable::enable_paging()
 */
 void PageTable::handle_fault(REGS * _r)
 {
-  unsigned long* current_page_directory = (unsigned long*) read_cr3();
+  unsigned long* current_page_directory = (unsigned long*)0xFFFFF000;
   unsigned long current_address = read_cr2();
   /*
     A page fault is issued in two cases,
@@ -122,16 +118,15 @@ void PageTable::handle_fault(REGS * _r)
     2) Page table exists but the page being accessed does not. To deal with this,
        we simply create a new page and add it to the page table.
   */
-  if((current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] & 1) == 0)
+  unsigned long dir_index = current_address >> PAGE_DIRECTORY_OFFSET;
+  unsigned long page_table_index = (current_address >> PAGETABLE_OFFSET) & 0x3FF;
+  if((current_page_directory[dir_index] & 1) == 0)
   {
-    unsigned long* page_table_ptr = (unsigned long*)(process_mem_pool->get_frames(1)* PAGE_SIZE);
-    unsigned int i = 0;
-    for(i=0;i<ENTRIES_PER_PAGE;i++){page_table_ptr[i] = 0 | 2;}
-    current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] = (unsigned long)page_table_ptr;
-    current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] = current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] | 3;
+    current_page_directory[dir_index] = (unsigned long)((process_mem_pool->get_frames(1)*PAGE_SIZE)|3);
+    unsigned long* page_table_ptr = (unsigned long *)(0xFFC00000|(dir_index<<PAGETABLE_OFFSET));
+    for(int i=0; i<ENTRIES_PER_PAGE; i++){page_table_ptr[i] = 0|2;}
   }
-  unsigned long offset = ((current_address >> PAGETABLE_OFFSET) & 0x3FF);
-  unsigned long* page_table_ptr = (unsigned long*)(current_page_directory[current_address >> PAGE_DIRECTORY_OFFSET] & 0xFFFFF000);
-  page_table_ptr[offset] = (unsigned long)(process_mem_pool->get_frames(1)*PAGE_SIZE) | 3;
+  unsigned long* page_table_ptr = (unsigned long*)(0xFFC00000 | (dir_index<<PAGETABLE_OFFSET));
+  page_table_ptr[page_table_index] = (unsigned long)(process_mem_pool->get_frames(1)*PAGE_SIZE | 3);
   Console::puts("handled page fault\n");
 }
