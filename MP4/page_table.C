@@ -47,6 +47,11 @@ PageTable::PageTable()
     Page Directory in this case can be fit in 1 frame size.So allocating 1 frame
     from kernel frame pool to store page directory table.
   */
+  /*
+    MP4 Modification : Instead of getting frames from kernel pool, now frames for page Directory
+    as well as all the page tables are allocated from process pool. This allows large number of
+    address space to be supported.
+  */
    page_directory = (unsigned long*)(process_mem_pool->get_frames(1) * PAGE_SIZE);
    /*
     The first 4MB of the memory is to be directly mapped, i.e no page faults should occur.
@@ -72,11 +77,22 @@ PageTable::PageTable()
    {
      page_directory[i] = 0 | 2;
    }
-   page_directory[1023] = (unsigned long)page_directory | 3;
    /*
-    Initializing the VMPool List. All the entries in the list are initialized to NULL
+    MP4 Update: When paging in turned on, CPU issues only logical address. Since we are storing
+    page directory and page tables in process pool rather than directly mapped region, we need to
+    allow recursive access of page directory. We define page directory to be in logical location 0xFFFFF000.
+    To allow page directory to be accessible for this logical address we set the last entry of directory to
+    point to itself, allowing for recursive access.
    */
-   for(int i=0;i<10;i++){pool_list[i]=NULL;}
+   page_directory[ENTRIES_PER_PAGE-1] = (unsigned long)page_directory | 3;
+   /*
+    MP4 Update: PageTable class now also maintains a list (in my implementaion arrays) of VMPOOL.
+    VMPOOL are pool of logical memory which are used to dynamically allocate memory i.e. for new or malloc like
+    operation.
+    In this implementaion, the maximum allowed VM POOL per address space is defined by MAX_VM_POOL_SIZE, which is
+    set to 10.
+   */
+   for(int i=0;i<PageTable::MAX_VM_POOL_SIZE;i++){pool_list[i]=NULL;}
    Console::puts("Constructed Page Table object\n");
 }
 
@@ -109,10 +125,16 @@ void PageTable::enable_paging()
   is reponsible for managing the page fault. Depending on the memory location being
   accessed, either a new page table is created or a page is created and entered into
   page table.
+
+  MP4 Update: page directory is no more accessible from CR3 register. The logical address of
+  page table directory is 0xFFFFF000, whereas, page table entries can be access by performing
+  following operation
+      1111 1111 11  (10 bits of page directory bits)  (12 0s)
+      which can be expressed as 0xFFC00000|page_directory_index|000
 */
 void PageTable::handle_fault(REGS * _r)
 {
-  unsigned long* current_page_directory = (unsigned long*)0xFFFFF000;
+  unsigned long* current_page_directory = (unsigned long*)0xFFFFF000; // logical address of page directory
   unsigned long current_address = read_cr2();
   /*
     A page fault is issued in two cases,
@@ -136,10 +158,14 @@ void PageTable::handle_fault(REGS * _r)
   Console::puts("handled page fault\n");
 }
 
+/*
+  MP4 Update: This method adds the new VMPool object to the list of VMPool contained by the address space.
+  If MAX capacity is reached, the program halts with error message indicated on screen
+*/
 void PageTable::register_pool(VMPool * _vm_pool)
 {
   unsigned int index = -1;
-  for(int i=0;i<10;i++)
+  for(int i=0;i<PageTable::MAX_VM_POOL_SIZE;i++)
   {
     if(pool_list[i]==NULL)
     {
@@ -148,9 +174,20 @@ void PageTable::register_pool(VMPool * _vm_pool)
     }
   }
   if(index >= 0) pool_list[index]=_vm_pool;
-  else Console::puts("Pool is Full\n");
+  else
+  {
+    Console::puts("Pool is Full\n");
+    while(1);
+  }
 }
 
+/*
+  MP4 Update: The free_page method will free the allocated page. The corresponding entry in page table is set
+  to invalid and TLB is flushed. This is done by rewriting cr3 register.
+  To delete the frame we call release_frame() method of Frame pool manager. By dividing the physical address by
+  PAGE_SIZE we get the original frame number assigned to us. The release_frame() method takes in this frame number
+  are resets the frame pool bitmap.
+*/
 void PageTable::free_page(unsigned long _page_no)
 {
 	unsigned long dir_index = _page_no >> PAGE_DIRECTORY_OFFSET;
@@ -159,6 +196,6 @@ void PageTable::free_page(unsigned long _page_no)
 	unsigned long physical_address = page_table_ptr[page_table_index];
 	page_table_ptr[page_table_index] = 0 | 2;
 	process_mem_pool->release_frames(physical_address/PAGE_SIZE);
-	load();
+	write_cr3((unsigned long) page_directory);
 	return;
 }

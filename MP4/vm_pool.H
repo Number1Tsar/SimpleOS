@@ -31,6 +31,15 @@
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
 
+/*
+  To perform book keeping of VMPool allocated and free regions we need some kind of data structure.
+  In this implementaion, we allocate 1 Page to every VMPOOL object which will be used to keep track of
+  number of regions current allocated and free. The necessary informations needed for this are
+  1) Starting logical address of region, stored by base
+  2) Size in PAGEs, stored by size
+  Since both variables are of type unsigned long, each of them occupy 4 bytes, making struct of size 8 bytes.
+  Hence only 4096/8 = 512 different regions can be allocated per VMPOOL. This constant is defined below
+*/
 struct Node
 {
 	unsigned long base;
@@ -47,16 +56,19 @@ class PageTable;
 
 class VMPool { /* Virtual Memory Pool */
 private:
-  unsigned long base_address;
-  unsigned long pool_size;
-  ContFramePool* framePool;
-  PageTable* pageTable;
-  Node* allocated_region;
-  unsigned int count;
+  unsigned long base_address;     // to store the logical base address of pools
+  unsigned long pool_size;        // to store the pool size
+  ContFramePool* framePool;      // Frame pool which manages the physical locations
+  PageTable* pageTable;          // Page table (address space) to which this pool belongs to
+  Node* allocated_region;        // Pointer to allocator management PAGE
+  unsigned int count;           // Total number of regions currently allocated in POOL
 
 public:
-  static const unsigned int MAX_COUNT = 4096/8;
-  
+  /*
+    Max numbers of regions possible. 4096/8
+  */
+  static const unsigned int MAX_COUNT = PageTable::PAGE_SIZE/sizeof(Node);
+
    VMPool(unsigned long  _base_address,
           unsigned long  _size,
           ContFramePool *_frame_pool,

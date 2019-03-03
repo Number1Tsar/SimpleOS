@@ -45,6 +45,9 @@
 /* METHODS FOR CLASS   V M P o o l */
 /*--------------------------------------------------------------------------*/
 
+/*
+  Creates a VMPool Object and registers it with the PageTable object
+*/
 VMPool::VMPool(unsigned long  _base_address,
                unsigned long  _size,
                ContFramePool *_frame_pool,
@@ -54,29 +57,49 @@ VMPool::VMPool(unsigned long  _base_address,
     pool_size = _size;
     framePool = _frame_pool;
     pageTable = _page_table;
+    //allocated_region represents an array of Node which are used for book keeping regions
     allocated_region = (Node*)(framePool->get_frames(1)*PageTable::PAGE_SIZE);
     count = 0;
     pageTable->register_pool(this);
     Console::puts("Constructed VMPool object.\n");
 }
 
+/*
+  Allocates region in VMPool. The size of region allocated is in multiples of PAGE_SIZE irrespective of the size
+  supplied in argument.
+  Also note that the allocation is done lazily, i.e. no actual frames are allocated in this stage.
+  The starting logical address of region is simply returned if enough space is available for allocation.
+  If the size exceed the defined capacity of pool, 0 is returned which indicates failure.
+  When this region is access (Read/Write) then a page fault triggers and actual frame is allocated.
+*/
 unsigned long VMPool::allocate(unsigned long _size)
 {
     if(_size==0) return 0;
-    unsigned int size_in_pages = (_size/4096) + ((_size%4096)>0)?1:0;
+    unsigned int size_in_pages = (_size/PageTable::PAGE_SIZE) + ((_size%PageTable::PAGE_SIZE)>0)?1:0;
     if(size_in_pages > MAX_COUNT)
     {
       Console::puts("Cannot allocate size\n");
       return 0;
     }
+    /*
+      Go to the end of list. Find the starting address of new region, increment the region count and return the
+      starting address to user.
+    */
     unsigned long begin = (count==0)?base_address: (allocated_region[count-1].base +allocated_region[count-1].size);
     allocated_region[count].base = begin;
     allocated_region[count].size = size_in_pages;
     count++;
-    return begin;
     Console::puts("Allocated region of memory.\n");
+    return begin;
 }
 
+/*
+  This method releases the region and the physical frames occupied by them. The METHOD
+  identifies the region which is responsible for the _start_address and if found frees the pages
+  Also the Node responsible for storing the deleted region is removed from this list. This is done by
+  repeteadly copying the next Node to the previous location.
+    Node[i[] <- Node[i+1]
+*/
 void VMPool::release(unsigned long _start_address)
 {
 	int index = -1;
@@ -93,18 +116,29 @@ void VMPool::release(unsigned long _start_address)
 		Console::puts("address not found\n");
 		return;
 	}
-	for(unsigned long address = _start_address; address < allocated_region[index].base + allocated_region[index].size; address+=4096)
+  /*
+    Free all the frames assigned to this region
+  */
+	for(unsigned long address = _start_address; address < allocated_region[index].base + allocated_region[index].size; address+=PageTable::PAGE_SIZE)
 	{
 		pageTable->free_page(address);
 	}
+  /*
+    Shrink the list by copying next location to deleted location.
+  */
 	for(int i=index;i<count-1;i++)
 	{
 		allocated_region[i] = allocated_region[i+1];
 	}
 	count--;
-    Console::puts("Released region of memory.\n");
+  Console::puts("Released region of memory.\n");
 }
 
+
+/*
+  An address in VM Pool is considered to be valid if it lies in any one of the regions. This method checks if
+  the given address is bounded by the base and base+size of any one of the regions in VMPOOL.
+*/
 bool VMPool::is_legitimate(unsigned long _address)
 {
 	Console::puts("Checked whether address is part of an allocated region.\n");
@@ -112,5 +146,6 @@ bool VMPool::is_legitimate(unsigned long _address)
 	{
 		if((_address >= allocated_region[i].base) && (_address < (allocated_region[i].base + allocated_region[i].size))) return true;
 	}
+  Console::puts("Illegal Address\n");
 	return false;
 }

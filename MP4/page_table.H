@@ -51,7 +51,7 @@ private:
 
     /* DATA FOR CURRENT PAGE TABLE */
     unsigned long        * page_directory;     /* where is page directory located? */
-    VMPool* pool_list[10];
+    VMPool* pool_list[PageTable::MAX_VM_POOL_SIZE];
 
 public:
     static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE;
@@ -59,8 +59,10 @@ public:
     static const unsigned int ENTRIES_PER_PAGE = Machine::PT_ENTRIES_PER_PAGE;
     /* in entries */
     static const unsigned int PAGE_DIRECTORY_OFFSET = 22;
-    
+
     static const unsigned int PAGETABLE_OFFSET = 12;
+
+    static const unsigned int MAX_VM_POOL_SIZE = 10;
 
     static void init_paging(ContFramePool * _kernel_mem_pool,
                             ContFramePool * _process_mem_pool,
