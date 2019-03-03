@@ -150,3 +150,15 @@ void PageTable::register_pool(VMPool * _vm_pool)
   if(index >= 0) pool_list[index]=_vm_pool;
   else Console::puts("Pool is Full\n");
 }
+
+void PageTable::free_page(unsigned long _page_no)
+{
+	unsigned long dir_index = _page_no >> PAGE_DIRECTORY_OFFSET;
+	unsigned long page_table_index = (_page_no >> PAGETABLE_OFFSET) & 0x3FF;
+	unsigned long* page_table_ptr = (unsigned long*)(0xFFC00000 | (dir_index<<PAGETABLE_OFFSET));
+	unsigned long physical_address = page_table_ptr[page_table_index];
+	page_table_ptr[page_table_index] = 0 | 2;
+	process_mem_pool->release_frames(physical_address/PAGE_SIZE);
+	load();
+	return;
+}

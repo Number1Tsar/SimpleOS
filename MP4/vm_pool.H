@@ -31,6 +31,12 @@
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
 
+struct Node
+{
+	unsigned long base;
+	unsigned long size;
+};
+
 /* Forward declaration of class PageTable */
 /* We need this to break a circular include sequence. */
 class PageTable;
@@ -45,11 +51,11 @@ private:
   unsigned long pool_size;
   ContFramePool* framePool;
   PageTable* pageTable;
-  unsigned long* allocator;
+  Node* allocated_region;
   unsigned int count;
 
 public:
-  staic const unsigned int MAX_COUNT = 4096/8;
+  static const unsigned int MAX_COUNT = 4096/8;
   
    VMPool(unsigned long  _base_address,
           unsigned long  _size,

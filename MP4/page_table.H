@@ -58,6 +58,9 @@ public:
     /* in bytes */
     static const unsigned int ENTRIES_PER_PAGE = Machine::PT_ENTRIES_PER_PAGE;
     /* in entries */
+    static const unsigned int PAGE_DIRECTORY_OFFSET = 22;
+    
+    static const unsigned int PAGETABLE_OFFSET = 12;
 
     static void init_paging(ContFramePool * _kernel_mem_pool,
                             ContFramePool * _process_mem_pool,
@@ -92,7 +95,7 @@ public:
     void register_pool(VMPool * _vm_pool);
     /* Register a virtual memory pool with the page table. */
 
-    //void free_page(unsigned long _page_no);
+    void free_page(unsigned long _page_no);
     /* If page is valid, release frame and mark page invalid. */
 
 };
