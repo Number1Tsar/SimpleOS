@@ -41,9 +41,16 @@ class PageTable;
 
 class VMPool { /* Virtual Memory Pool */
 private:
-   /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
+  unsigned long base_address;
+  unsigned long pool_size;
+  ContFramePool* framePool;
+  PageTable* pageTable;
+  unsigned long* allocator;
+  unsigned int count;
 
 public:
+  staic const unsigned int MAX_COUNT = 4096/8;
+  
    VMPool(unsigned long  _base_address,
           unsigned long  _size,
           ContFramePool *_frame_pool,

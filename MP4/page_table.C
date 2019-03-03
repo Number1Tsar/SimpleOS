@@ -3,6 +3,7 @@
 #include "console.H"
 #include "paging_low.H"
 #include "page_table.H"
+#include "vm_pool.H"
 
 PageTable * PageTable::current_page_table = NULL;
 unsigned int PageTable::paging_enabled = 0;
@@ -72,6 +73,10 @@ PageTable::PageTable()
      page_directory[i] = 0 | 2;
    }
    page_directory[1023] = (unsigned long)page_directory | 3;
+   /*
+    Initializing the VMPool List. All the entries in the list are initialized to NULL
+   */
+   for(int i=0;i<10;i++){pool_list[i]=NULL;}
    Console::puts("Constructed Page Table object\n");
 }
 
@@ -129,4 +134,19 @@ void PageTable::handle_fault(REGS * _r)
   unsigned long* page_table_ptr = (unsigned long*)(0xFFC00000 | (dir_index<<PAGETABLE_OFFSET));
   page_table_ptr[page_table_index] = (unsigned long)(process_mem_pool->get_frames(1)*PAGE_SIZE | 3);
   Console::puts("handled page fault\n");
+}
+
+void PageTable::register_pool(VMPool * _vm_pool)
+{
+  unsigned int index = -1;
+  for(int i=0;i<10;i++)
+  {
+    if(pool_list[i]==NULL)
+    {
+      index = i;
+      break;
+    }
+  }
+  if(index >= 0) pool_list[index]=_vm_pool;
+  else Console::puts("Pool is Full\n");
 }
