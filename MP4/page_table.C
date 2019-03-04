@@ -145,6 +145,20 @@ void PageTable::handle_fault(REGS * _r)
     2) Page table exists but the page being accessed does not. To deal with this,
        we simply create a new page and add it to the page table.
   */
+  bool valid = false;
+  for(int i=0;i<MAX_VM_POOL_SIZE;i++)
+  {
+	  if(current_page_table->pool_list[i]!=NULL)
+	  {
+		  valid = current_page_table->pool_list[i]->is_legitimate(current_address);
+		  if(valid == true) break;
+	  }
+  }
+  if(valid==false)
+  {
+	  Console::puts("Invalid address\n");
+	  while(1);
+  }
   unsigned long dir_index = current_address >> PAGE_DIRECTORY_OFFSET;
   unsigned long page_table_index = (current_address >> PAGETABLE_OFFSET) & 0x3FF;
   if((current_page_directory[dir_index] & 1) == 0)

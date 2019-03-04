@@ -64,10 +64,12 @@ private:
   unsigned int count;           // Total number of regions currently allocated in POOL
 
 public:
+
+  static const unsigned long PAGE_SIZE = 4096;
   /*
     Max numbers of regions possible. 4096/8
   */
-  static const unsigned int MAX_COUNT = PageTable::PAGE_SIZE/sizeof(Node);
+  static const unsigned int MAX_COUNT = PAGE_SIZE/sizeof(Node);
 
    VMPool(unsigned long  _base_address,
           unsigned long  _size,

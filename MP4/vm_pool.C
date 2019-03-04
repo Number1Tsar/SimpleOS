@@ -58,7 +58,7 @@ VMPool::VMPool(unsigned long  _base_address,
     framePool = _frame_pool;
     pageTable = _page_table;
     //allocated_region represents an array of Node which are used for book keeping regions
-    allocated_region = (Node*)(framePool->get_frames(1)*PageTable::PAGE_SIZE);
+    allocated_region = (Node*)(base_address);
     count = 0;
     pageTable->register_pool(this);
     Console::puts("Constructed VMPool object.\n");
@@ -75,20 +75,20 @@ VMPool::VMPool(unsigned long  _base_address,
 unsigned long VMPool::allocate(unsigned long _size)
 {
     if(_size==0) return 0;
-    unsigned int size_in_pages = (_size/PageTable::PAGE_SIZE) + ((_size%PageTable::PAGE_SIZE)>0)?1:0;
-    if(size_in_pages > MAX_COUNT)
-    {
-      Console::puts("Cannot allocate size\n");
-      return 0;
-    }
+    unsigned int size_in_pages = ((_size/PAGE_SIZE) + (((_size%PAGE_SIZE)>0)?1:0));
     /*
       Go to the end of list. Find the starting address of new region, increment the region count and return the
       starting address to user.
     */
-    unsigned long begin = (count==0)?base_address: (allocated_region[count-1].base +allocated_region[count-1].size);
+    unsigned long begin = (count==0)?base_address+PAGE_SIZE: (allocated_region[count-1].base +allocated_region[count-1].size);
     allocated_region[count].base = begin;
-    allocated_region[count].size = size_in_pages;
+    allocated_region[count].size = size_in_pages*PAGE_SIZE;
     count++;
+    if(count > MAX_COUNT)
+    {
+      Console::puts("Cannot allocate size\n");
+      return 0;
+    }
     Console::puts("Allocated region of memory.\n");
     return begin;
 }
@@ -119,7 +119,7 @@ void VMPool::release(unsigned long _start_address)
   /*
     Free all the frames assigned to this region
   */
-	for(unsigned long address = _start_address; address < allocated_region[index].base + allocated_region[index].size; address+=PageTable::PAGE_SIZE)
+	for(unsigned long address = _start_address; address < (allocated_region[index].base + allocated_region[index].size); address+=PAGE_SIZE)
 	{
 		pageTable->free_page(address);
 	}
@@ -142,10 +142,16 @@ void VMPool::release(unsigned long _start_address)
 bool VMPool::is_legitimate(unsigned long _address)
 {
 	Console::puts("Checked whether address is part of an allocated region.\n");
+	if(_address >= base_address && _address < (base_address+PAGE_SIZE))
+	{
+		return true;
+	} 
 	for(int i=0;i<count;i++)
 	{
-		if((_address >= allocated_region[i].base) && (_address < (allocated_region[i].base + allocated_region[i].size))) return true;
+		if((_address >= allocated_region[i].base) && (_address < (allocated_region[i].base + allocated_region[i].size)))
+		{
+			return true;
+		}
 	}
-  Console::puts("Illegal Address\n");
 	return false;
 }
