@@ -145,6 +145,11 @@ void PageTable::handle_fault(REGS * _r)
     2) Page table exists but the page being accessed does not. To deal with this,
        we simply create a new page and add it to the page table.
   */
+  /*
+  MP4 Update: Check if the address is a legitimate one. This is done by checking the address against
+  all the VM POOL registered with the PageTable.
+  If the address is invalid, the program halts.
+  */
   bool valid = false;
   for(int i=0;i<MAX_VM_POOL_SIZE;i++)
   {
@@ -159,6 +164,7 @@ void PageTable::handle_fault(REGS * _r)
 	  Console::puts("Invalid address\n");
 	  while(1);
   }
+  /* Create new page and pagetable if required*/
   unsigned long dir_index = current_address >> PAGE_DIRECTORY_OFFSET;
   unsigned long page_table_index = (current_address >> PAGETABLE_OFFSET) & 0x3FF;
   if((current_page_directory[dir_index] & 1) == 0)

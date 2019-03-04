@@ -71,6 +71,10 @@ VMPool::VMPool(unsigned long  _base_address,
   The starting logical address of region is simply returned if enough space is available for allocation.
   If the size exceed the defined capacity of pool, 0 is returned which indicates failure.
   When this region is access (Read/Write) then a page fault triggers and actual frame is allocated.
+
+  Also note that the allocated_region itself is allocated lazily. When the allocate method is called for the first time
+  and when allocated_region[count].base or allocated_region[count].size is being accessed it causes a page fault
+  and an actual page is allocated for this location.
 */
 unsigned long VMPool::allocate(unsigned long _size)
 {
@@ -82,6 +86,7 @@ unsigned long VMPool::allocate(unsigned long _size)
     */
     unsigned long begin = (count==0)?base_address+PAGE_SIZE: (allocated_region[count-1].base +allocated_region[count-1].size);
     allocated_region[count].base = begin;
+    // Size must be multiple of PAGE_SIZE
     allocated_region[count].size = size_in_pages*PAGE_SIZE;
     count++;
     if(count > MAX_COUNT)
@@ -138,14 +143,20 @@ void VMPool::release(unsigned long _start_address)
 /*
   An address in VM Pool is considered to be valid if it lies in any one of the regions. This method checks if
   the given address is bounded by the base and base+size of any one of the regions in VMPOOL.
+  Because a page fault occurs for allocated_region also, any address that lies inside the first page of VMPool is
+  also valid even though it does not lie within any region. The first if condition checks this case.
 */
 bool VMPool::is_legitimate(unsigned long _address)
 {
 	Console::puts("Checked whether address is part of an allocated region.\n");
+  /*
+    Address is still valid if it lise inside the first page which is used to store information about
+    other regions.
+  */
 	if(_address >= base_address && _address < (base_address+PAGE_SIZE))
 	{
 		return true;
-	} 
+	}
 	for(int i=0;i<count;i++)
 	{
 		if((_address >= allocated_region[i].base) && (_address < (allocated_region[i].base + allocated_region[i].size)))
