@@ -1,9 +1,9 @@
 /*
  File: scheduler.C
- 
+
  Author:
  Date  :
- 
+
  */
 
 /*--------------------------------------------------------------------------*/
@@ -45,23 +45,30 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
-Scheduler::Scheduler() {
-  assert(false);
+Scheduler::Scheduler()
+{
+  queue = Queue();
+  running_thread = NULL;
   Console::puts("Constructed Scheduler.\n");
 }
 
-void Scheduler::yield() {
-  assert(false);
+void Scheduler::yield()
+{
+  running_thread = queue.pop();
+  Thread::dispatch_to(running_thread);
 }
 
-void Scheduler::resume(Thread * _thread) {
-  assert(false);
+void Scheduler::resume(Thread * _thread)
+{
+  queue.push(_thread);
 }
 
-void Scheduler::add(Thread * _thread) {
-  assert(false);
+void Scheduler::add(Thread * _thread)
+{
+  queue.push(_thread);
 }
 
-void Scheduler::terminate(Thread * _thread) {
-  assert(false);
+void Scheduler::terminate(Thread * _thread)
+{
+
 }

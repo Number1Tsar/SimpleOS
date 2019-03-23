@@ -11,9 +11,9 @@
 
     MAIN FILE FOR MACHINE PROBLEM "KERNEL-LEVEL THREAD MANAGEMENT"
 
-    NOTE: REMEMBER THAT AT THE VERY BEGINNING WE DON'T HAVE A MEMORY MANAGER. 
-          OBJECT THEREFORE HAVE TO BE ALLOCATED ON THE STACK. 
-          THIS LEADS TO SOME RATHER CONVOLUTED CODE, WHICH WOULD BE MUCH 
+    NOTE: REMEMBER THAT AT THE VERY BEGINNING WE DON'T HAVE A MEMORY MANAGER.
+          OBJECT THEREFORE HAVE TO BE ALLOCATED ON THE STACK.
+          THIS LEADS TO SOME RATHER CONVOLUTED CODE, WHICH WOULD BE MUCH
           SIMPLER OTHERWISE.
 */
 
@@ -48,7 +48,7 @@
 #include "gdt.H"
 #include "idt.H"             /* EXCEPTION MGMT.   */
 #include "irq.H"
-#include "exceptions.H"    
+#include "exceptions.H"
 #include "interrupts.H"
 
 #include "simple_timer.H"    /* TIMER MANAGEMENT  */
@@ -109,7 +109,7 @@ Scheduler * SYSTEM_SCHEDULER;
 
 void pass_on_CPU(Thread * _to_thread) {
   // Hand over CPU from current thread to _to_thread.
-  
+
 #ifndef _USES_SCHEDULER_
 
         /* We don't use a scheduler. Explicitely pass control to the next
@@ -138,18 +138,22 @@ Thread * thread4;
 
 /* -- THE 4 FUNCTIONS fun1 - fun4 ARE LARGELY IDENTICAL. */
 
-void fun1() {
-    Console::puts("Thread: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts("\n");
+void fun1()
+{
+    Console::puts("Thread: ");
+    Console::puti(Thread::CurrentThread()->ThreadId());
+    Console::puts("\n");
     Console::puts("FUN 1 INVOKED!\n");
 
 #ifdef _TERMINATING_FUNCTIONS_
-    for(int j = 0; j < 10; j++) 
+    for(int j = 0; j < 10; j++)
 #else
-    for(int j = 0;; j++) 
+    for(int j = 0;; j++)
 #endif
-    {	
+    {
         Console::puts("FUN 1 IN BURST["); Console::puti(j); Console::puts("]\n");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++)
+        {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread2);
@@ -157,18 +161,22 @@ void fun1() {
 }
 
 
-void fun2() {
-    Console::puts("Thread: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts("\n");
+void fun2()
+{
+    Console::puts("Thread: ");
+    Console::puti(Thread::CurrentThread()->ThreadId());
+    Console::puts("\n");
     Console::puts("FUN 2 INVOKED!\n");
 
 #ifdef _TERMINATING_FUNCTIONS_
-    for(int j = 0; j < 10; j++) 
+    for(int j = 0; j < 10; j++)
 #else
-    for(int j = 0;; j++) 
-#endif  
-    {		
+    for(int j = 0;; j++)
+#endif
+    {
         Console::puts("FUN 2 IN BURST["); Console::puti(j); Console::puts("]\n");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++)
+        {
             Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread3);
@@ -235,7 +243,7 @@ int main() {
     /* ---- Initialize a frame pool; details are in its implementation */
     FramePool system_frame_pool;
     SYSTEM_FRAME_POOL = &system_frame_pool;
-   
+
     /* ---- Create a memory pool of 256 frames. */
     MemPool memory_pool(SYSTEM_FRAME_POOL, 256);
     MEMORY_POOL = &memory_pool;
@@ -244,7 +252,7 @@ int main() {
 
     /* -- INITIALIZE THE TIMER (we use a very simple timer).-- */
 
-    /* Question: Why do we want a timer? We have it to make sure that 
+    /* Question: Why do we want a timer? We have it to make sure that
                  we enable interrupts correctly. If we forget to do it,
                  the timer "dies". */
 
@@ -255,7 +263,7 @@ int main() {
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
- 
+
     SYSTEM_SCHEDULER = new Scheduler();
 
 #endif
@@ -263,7 +271,7 @@ int main() {
     /* NOTE: The timer chip starts periodically firing as
              soon as we enable interrupts.
              It is important to install a timer handler, as we
-             would get a lot of uncaptured interrupts otherwise. */ 
+             would get a lot of uncaptured interrupts otherwise. */
 
     /* -- ENABLE INTERRUPTS -- */
 
