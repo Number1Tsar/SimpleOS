@@ -48,14 +48,13 @@
 Scheduler::Scheduler()
 {
   queue = Queue();
-  running_thread = NULL;
   Console::puts("Constructed Scheduler.\n");
 }
 
 void Scheduler::yield()
 {
-  running_thread = queue.pop();
-  Thread::dispatch_to(running_thread);
+  Thread* nextRunning = queue.pop();
+  Thread::dispatch_to(nextRunning);
 }
 
 void Scheduler::resume(Thread * _thread)

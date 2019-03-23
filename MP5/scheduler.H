@@ -20,6 +20,7 @@
 /*--------------------------------------------------------------------------*/
 
 #include "thread.H"
+#include "utils.H"
 
 /*--------------------------------------------------------------------------*/
 /* !!! IMPLEMENTATION HINT !!! */
@@ -68,7 +69,7 @@ struct Node
 /*	Default Constructor*/
 	Node()
 	{
-		this->theard = NULL;
+		this->thread = NULL;
 		this->next = NULL;
 	}
 
@@ -105,7 +106,7 @@ public:
 /*
 	Push to the end of the Queue
 */
-	void push(Thread* thread)
+	void push(Thread*& thread)
 	{
 		Node* newnode = new Node(thread);
 		if(head==NULL)
@@ -137,6 +138,8 @@ public:
 			}
 			return nextToRun;
 		}
+		/*This should never happen*/
+		return NULL;
 	}
 
 };
@@ -146,7 +149,6 @@ class Scheduler
 private:
 	/* Scheduler maintains a queue to hold thread that are elligible to Run or are in READY State*/
 	Queue queue;
-	Thread* running_thread;
 public:
 
    Scheduler();
