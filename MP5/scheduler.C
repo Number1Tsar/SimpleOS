@@ -69,5 +69,5 @@ void Scheduler::add(Thread * _thread)
 
 void Scheduler::terminate(Thread * _thread)
 {
-
+  yield();
 }

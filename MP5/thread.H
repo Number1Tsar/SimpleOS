@@ -85,6 +85,10 @@ public:
     static Thread * CurrentThread();
     /* Returns the currently running thread. NULL if no thread has started 
        yet. */
+    /*
+      Thread destructor. This will be used to free up all the resources the thread is holding, most importantly the stack provided.
+    */   
+     ~Thread();  
 };
 
 #endif

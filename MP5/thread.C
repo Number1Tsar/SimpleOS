@@ -34,13 +34,13 @@
 #include "frame_pool.H"
 
 #include "thread.H"
-
+#include "scheduler.H"
 #include "threads_low.H"
 
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
-
+extern Scheduler*  SYSTEM_SCHEDULER;
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
    for example. */
@@ -67,21 +67,27 @@ inline void Thread::push(unsigned long _val) {
 /* -------------------------------------------------------------------------*/
 /* LOCAL FUNCTIONS TO START/SHUTDOWN THREADS. */
 
-static void thread_shutdown() {
+static void thread_shutdown() 
+{
     /* This function should be called when the thread returns from the thread function.
        It terminates the thread by releasing memory and any other resources held by the thread. 
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
-
-    assert(false);
+    Console::puts("Deleting Thread:");
+    Console::puti(current_thread->ThreadId());
+    Console::puts("\n");
+    delete current_thread;
+    SYSTEM_SCHEDULER->terminate(current_thread);
+    current_thread = 0;
     /* Let's not worry about it for now. 
        This means that we should have non-terminating thread functions. 
     */
 }
 
-static void thread_start() {
+static void thread_start() 
+{
      /* This function is used to release the thread for execution in the ready queue. */
-    
+	 //Machine::enable_interrupts();
      /* We need to add code, but it is probably nothing more than enabling interrupts. */
 }
 
@@ -208,4 +214,15 @@ void Thread::dispatch_to(Thread * _thread) {
 Thread * Thread::CurrentThread() {
 /* Return the currently running thread. */
     return current_thread;
+}
+
+/*
+  Thread Destructor. Frees the stack.
+*/
+Thread::~Thread()
+{
+  Console::puts("Deleting stack for Thread");
+  Console::puti(current_thread->ThreadId());
+  Console::puts("\n");
+  delete[] stack;
 }

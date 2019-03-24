@@ -33,7 +33,7 @@
 
 /* -- UNCOMMENT THE FOLLOWING LINE TO MAKE THREADS TERMINATING */
 
-//#define _TERMINATING_FUNCTIONS_
+#define _TERMINATING_FUNCTIONS_
 /* This macro is defined when we want the thread functions to return, and so
    terminate their thread.
    Otherwise, the thread functions don't return, and the threads run forever.
@@ -93,6 +93,7 @@ void operator delete (void * p) {
 
 //replace the operator "delete[]"
 void operator delete[] (void * p) {
+	Console::puts("here\n");
     MEMORY_POOL->release((unsigned long)p);
 }
 
@@ -208,6 +209,7 @@ void fun4() {
         pass_on_CPU(thread1);
     }
 }
+
 
 /*--------------------------------------------------------------------------*/
 /* MAIN ENTRY INTO THE OS */
