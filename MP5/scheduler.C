@@ -61,6 +61,7 @@ void Scheduler::yield()
 {
   if(Machine::interrupts_enabled()) Machine::disable_interrupts();
   Thread* nextRunning = queue.pop();
+  if(!Machine::interrupts_enabled()) Machine::enable_interrupts();
   Thread::dispatch_to(nextRunning);
 }
 

@@ -207,7 +207,6 @@ void Thread::dispatch_to(Thread * _thread) {
     /* The value of 'current_thread' is modified inside 'threads_low_switch_to()'. */
 
     threads_low_switch_to(_thread);
-    if(!Machine::interrupts_enabled())Machine::enable_interrupts();
 
     /* The call does not return until after the thread is context-switched back in. */
 }
