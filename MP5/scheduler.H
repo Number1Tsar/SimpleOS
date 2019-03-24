@@ -20,6 +20,7 @@
 /*--------------------------------------------------------------------------*/
 
 #include "thread.H"
+#include "console.H"
 #include "utils.H"
 
 /*--------------------------------------------------------------------------*/
@@ -141,7 +142,7 @@ public:
 		/*This should never happen*/
 		return NULL;
 	}
-
+	
 };
 
 class Scheduler

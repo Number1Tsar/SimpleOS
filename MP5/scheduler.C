@@ -59,6 +59,7 @@ Scheduler::Scheduler()
 */
 void Scheduler::yield()
 {
+  if(Machine::interrupts_enabled()) Machine::disable_interrupts();
   Thread* nextRunning = queue.pop();
   Thread::dispatch_to(nextRunning);
 }
@@ -68,7 +69,9 @@ void Scheduler::yield()
 */
 void Scheduler::resume(Thread * _thread)
 {
+  if(Machine::interrupts_enabled()) Machine::disable_interrupts();
   queue.push(_thread);
+  Machine::enable_interrupts();
 }
 
 /*
@@ -79,7 +82,9 @@ void Scheduler::resume(Thread * _thread)
 */
 void Scheduler::add(Thread * _thread)
 {
+  if(Machine::interrupts_enabled()) Machine::disable_interrupts();
   queue.push(_thread);
+  Machine::enable_interrupts();
 }
 
 /*
