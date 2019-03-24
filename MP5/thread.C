@@ -1,4 +1,4 @@
-/* 
+/*
     File: thread.C
 
     Author: R. Bettati
@@ -11,10 +11,10 @@
     It supports creation of threads and low-level dispatching.
 
     It has been developed after study of David H. Hovemeyer's "kthread"
-    code <daveho@cs.umd.edu> and uses his approach for setting up the 
-    stack of the thread upon start-up. 
+    code <daveho@cs.umd.edu> and uses his approach for setting up the
+    stack of the thread upon start-up.
 
-    Some portions of his code have been derived from David Hovemeyer's 
+    Some portions of his code have been derived from David Hovemeyer's
     code.
 */
 
@@ -40,7 +40,12 @@
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
+/*
+  The handle to the scheduler is required, especially to call to yeild the CPU to
+  next elligble thread.
+*/
 extern Scheduler*  SYSTEM_SCHEDULER;
+
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
    for example. */
@@ -67,10 +72,10 @@ inline void Thread::push(unsigned long _val) {
 /* -------------------------------------------------------------------------*/
 /* LOCAL FUNCTIONS TO START/SHUTDOWN THREADS. */
 
-static void thread_shutdown() 
+static void thread_shutdown()
 {
     /* This function should be called when the thread returns from the thread function.
-       It terminates the thread by releasing memory and any other resources held by the thread. 
+       It terminates the thread by releasing memory and any other resources held by the thread.
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
     Console::puts("Deleting Thread:");
@@ -79,12 +84,12 @@ static void thread_shutdown()
     delete current_thread;
     SYSTEM_SCHEDULER->terminate(current_thread);
     current_thread = 0;
-    /* Let's not worry about it for now. 
-       This means that we should have non-terminating thread functions. 
+    /* Let's not worry about it for now.
+       This means that we should have non-terminating thread functions.
     */
 }
 
-static void thread_start() 
+static void thread_start()
 {
      /* This function is used to release the thread for execution in the ready queue. */
 	 //Machine::enable_interrupts();
@@ -92,13 +97,13 @@ static void thread_start()
 }
 
 void Thread::setup_context(Thread_Function _tfunction){
-    /* Sets up the initial context for the given kernel-only thread. 
+    /* Sets up the initial context for the given kernel-only thread.
        The thread is supposed the call the function _tfunction upon start.
     */
-  
-    /* The approach and most of the code in this function are borrowed from 
+
+    /* The approach and most of the code in this function are borrowed from
        David H. Hovemeyer <daveho@cs.umd.edu> */
- 
+
     /* -- HERE WE PUSH THE ITEMS ON THE STACK THAT ARE NEEDED FOR THE
           THREAD TO START EXECUTION AND FOR IT TO TERMINATE CORRECTLY
           WHEN THE THREAD FUNCTION RETURNS. */
@@ -108,7 +113,7 @@ void Thread::setup_context(Thread_Function _tfunction){
 
     /* ---- ADDRESS OF SHUTDOWN FUNCTION */
     push((unsigned long) &thread_shutdown);
-    /* The thread_shutdown function should be called when the thread function 
+    /* The thread_shutdown function should be called when the thread function
        returns. */
 
     /* Push the address of the thread function. */
@@ -128,7 +133,7 @@ void Thread::setup_context(Thread_Function _tfunction){
     /* ---- CS and EIP REGISTERS */
     push(Machine::KERNEL_CS);
     push((unsigned long) &thread_start);
-    /* In the instruction pointer (EIP) we store address of the 
+    /* In the instruction pointer (EIP) we store address of the
        function that will kick-start the thread. */
 
     /* Push fake error code and interrupt number. */
@@ -167,13 +172,13 @@ void Thread::setup_context(Thread_Function _tfunction){
 
 Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 /* Construct a new thread and initialize its stack. The thread is then ready to run.
-   (The dispatcher is implemented in file "thread_scheduler".) 
+   (The dispatcher is implemented in file "thread_scheduler".)
 */
 
     /* -- INITIALIZE THREAD */
 
     /* ---- THREAD ID */
-   
+
     thread_id = nextFreePid++;
 
     /* ---- STACK POINTER */
@@ -183,7 +188,7 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 
     stack = _stack;
     stack_size = _stack_size;
-    
+
     /* -- INITIALIZE THE STACK OF THE THREAD */
 
     setup_context(_tf);
@@ -195,11 +200,11 @@ int Thread::ThreadId() {
 }
 
 void Thread::dispatch_to(Thread * _thread) {
-/* Context-switch to the given thread. Calls the low-level context switch code 
+/* Context-switch to the given thread. Calls the low-level context switch code
    in thread_low.asm.
    NOTE: This call does not return until after the current thread is switched back in.
    NOTE: We don't consider the system start thread as an actual thread. Therefore, we will
-         not return from this function ever when the system start code (in kernel.C) starts up 
+         not return from this function ever when the system start code (in kernel.C) starts up
          the first thread.
 */
 
@@ -209,7 +214,7 @@ void Thread::dispatch_to(Thread * _thread) {
 
     /* The call does not return until after the thread is context-switched back in. */
 }
-       
+
 
 Thread * Thread::CurrentThread() {
 /* Return the currently running thread. */
@@ -217,12 +222,9 @@ Thread * Thread::CurrentThread() {
 }
 
 /*
-  Thread Destructor. Frees the stack.
+  Thread Destructor. Frees the stack occupied by the Thread.
 */
 Thread::~Thread()
 {
-  Console::puts("Deleting stack for Thread");
-  Console::puti(current_thread->ThreadId());
-  Console::puts("\n");
   delete[] stack;
 }
