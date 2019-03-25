@@ -91,10 +91,11 @@ void Scheduler::add(Thread * _thread)
 /*
   In this implementation of terminate, the scheduler is not responsible for releasing the resources occupied
   by the thread. That is done be the thread management system. Since only the thread that is running can
-  call this terminate method, the TCB fot that thread is already removed from queue( Refer to pop operation of queue).
-  The terminate method is therefore nothing more than simple yeilding the CPU to next elligible thread.
+  call this terminate method, the TCB for that thread is already removed from queue( Refer to pop operation of queue).
+  In this implementation, terminate is redundant. The thread shutdown function can simply delete the current thread thereby
+  freeing its resources and then call yield.
 */
 void Scheduler::terminate(Thread * _thread)
 {
-  yield();
+ 
 }

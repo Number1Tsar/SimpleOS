@@ -82,6 +82,9 @@ struct Node
 	}
 };
 
+/*
+	A FIFO Queue which stores the READY threads.
+ */
 class Queue
 {
 private:
@@ -105,7 +108,7 @@ public:
 	}
 
 /*
-	Push to the end of the Queue
+	Push to the end of the Queue. This is achieved in O(1).
 */
 	void push(Thread*& thread)
 	{
@@ -123,7 +126,7 @@ public:
 	}
 
 /*
-	Get next thread to be run
+	Get next thread to be run. This is also achieved in O(1).
 */
 	Thread* pop()
 	{
@@ -139,7 +142,14 @@ public:
 			}
 			return nextToRun;
 		}
-		/*This should never happen*/
+		/*
+			This should never happen. This indicates that the queue is empty.
+			To avoid this from ever happenning, we can create an idle thread, which will be 
+			added to the queue whenever kernel boots. This idle thread will run forever which will
+			avoid this condition from taking place. In case of FIFO scheduling, the ideal thread can 
+			cause wastage of CPU time by taking valuable resorces while other threads are present, however for 
+			priority based scheduling, this can be made possible.
+		 */
 		return NULL;
 	}
 	

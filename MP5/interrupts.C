@@ -127,22 +127,19 @@ void InterruptHandler::dispatch_interrupt(REGS * _r) {
     Console::puts("NO DEFAULT INTERRUPT HANDLER REGISTERED\n");
     //    abort();
   }
+  
   /*
    Deals with Timer Interrupt. The Timer interrupt handler deals with handling context switching.
    Because of the context switchin, EOI message is send to interrupt controller before the interrupt
    handler runs. 
    Could not think of implementing this in more cleaner way.
    */
-  
-  else if (int_no == 0)
-  {
-	Machine::outportb(0x20, 0x20);  
-	handler->handle_interrupt(_r);
-  }
+  	
   else 
   {
   /* -- HANDLE THE INTERRUPT */
   handler->handle_interrupt(_r);
+  }
   /* This is an interrupt that was raised by the interrupt controller. We need 
        to send and end-of-interrupt (EOI) signal to the controller after the 
        interrupt has been handled. */
@@ -157,8 +154,7 @@ void InterruptHandler::dispatch_interrupt(REGS * _r) {
 
   /* Send an EOI message to the master interrupt controller. */
   Machine::outportb(0x20, 0x20);
-  }
-    
+  
 }
 
 void InterruptHandler::register_handler(unsigned int        _irq_code,

@@ -33,7 +33,7 @@
 
 /* -- UNCOMMENT THE FOLLOWING LINE TO MAKE THREADS TERMINATING */
 
-//#define _TERMINATING_FUNCTIONS_
+#define _TERMINATING_FUNCTIONS_
 /* This macro is defined when we want the thread functions to return, and so
    terminate their thread.
    Otherwise, the thread functions don't return, and the threads run forever.
@@ -158,7 +158,7 @@ void fun1()
         {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        //pass_on_CPU(thread2);
+        pass_on_CPU(thread2);
     }
 }
 
@@ -181,7 +181,7 @@ void fun2()
         {
             Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        //pass_on_CPU(thread3);
+        pass_on_CPU(thread3);
     }
 }
 
@@ -194,7 +194,7 @@ void fun3() {
         for (int i = 0; i < 10; i++) {
 	    Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        //pass_on_CPU(thread4);
+        pass_on_CPU(thread4);
     }
 }
 
@@ -207,7 +207,7 @@ void fun4() {
         for (int i = 0; i < 10; i++) {
 	    Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        //pass_on_CPU(thread1);
+        pass_on_CPU(thread1);
     }
 }
 
