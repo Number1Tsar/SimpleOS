@@ -35,6 +35,8 @@
 /*--------------------------------------------------------------------------*/
 
 class BlockingDisk : public SimpleDisk {
+private:
+	void wait_until_ready();
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size);
    /* Creates a BlockingDisk device with the given size connected to the
