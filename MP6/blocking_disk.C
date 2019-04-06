@@ -57,6 +57,7 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf)
 /*--------------------------------------------------------------------------*/
 void BlockingDisk::wait_until_ready()
 {
+Console::puts("here\n");
     while (!SimpleDisk::is_ready())
     {
         Thread *thread = Thread::CurrentThread();

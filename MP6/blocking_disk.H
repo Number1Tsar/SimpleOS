@@ -35,7 +35,7 @@
 /*--------------------------------------------------------------------------*/
 
 class BlockingDisk : public SimpleDisk {
-private:
+protected:
 	void wait_until_ready();
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size);
