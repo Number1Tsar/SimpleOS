@@ -180,6 +180,7 @@ void fun2() {
        SYSTEM_DISK->read(read_block, buf);
 
        /* -- Display */
+	Console::puts("showing\n");
        for (int i = 0; i < DISK_BLOCK_SIZE; i++) {
            Console::putch(buf[i]);
        }

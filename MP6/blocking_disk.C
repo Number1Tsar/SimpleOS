@@ -58,15 +58,16 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf)
 void BlockingDisk::wait_until_ready()
 {
 Console::puts("here\n");
-    while (!SimpleDisk::is_ready())
+Thread *thread = Thread::CurrentThread();
+        Console::puts("queing thread\n");
+        SYSTEM_SCHEDULER->resume(thread);
+        SYSTEM_SCHEDULER->yield();
+    if(!SimpleDisk::is_ready())
     {
-        Thread *thread = Thread::CurrentThread();
-        /*
-          Only one queue exists which is maintained by scheduler
-        */
+        
+Thread *thread = Thread::CurrentThread();
         Console::puts("queing thread\n");
         SYSTEM_SCHEDULER->resume(thread);
         SYSTEM_SCHEDULER->yield();
     }
-
 }
