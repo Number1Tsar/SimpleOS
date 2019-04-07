@@ -33,10 +33,22 @@
 /*--------------------------------------------------------------------------*/
 /* B l o c k i n g D i s k  */
 /*--------------------------------------------------------------------------*/
+class Queue;
 
-class BlockingDisk : public SimpleDisk {
+class BlockingDisk : public SimpleDisk
+{
+private:
+	bool locked;
+
+	Queue waitingQueue;
+
+	void acquire();
+
+	void release();
+
 protected:
 	void wait_until_ready();
+
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size);
    /* Creates a BlockingDisk device with the given size connected to the

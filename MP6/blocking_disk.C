@@ -34,7 +34,35 @@ extern Scheduler* SYSTEM_SCHEDULER;
 BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
   : SimpleDisk(_disk_id, _size)
 {
+  locked = false;
+  Console::puts("Mutex is created\n");
+}
 
+void BlockingDisk::acquire()
+{
+  if(locked)
+  {
+    waitingQueue.push(Thread::CurrentThread());
+    Console::puts("Waiting for lock Thread ");
+    Console::puti(Thread::CurrentThread()->ThreadId());
+    Console::puts("\n");
+    SYSTEM_SCHEDULER->yield();
+  }
+  locked = true;
+  Console::puts("Thread ");
+  Console::puti(Thread::CurrentThread()->ThreadId());
+  Console::puts(" has the lock\n");
+}
+
+void BlockingDisk::release()
+{
+  locked = false;
+  if(!waitingQueue.isEmpty())
+  {
+    Thread* nextRunning = waitingQueue.pop();
+    SYSTEM_SCHEDULER->resume(Thread::CurrentThread());
+    Thread::dispatch_to(nextRunning);
+  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -43,13 +71,17 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
 
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf)
 {
+  acquire();
   SimpleDisk::read(_block_no, _buf);
+  release();
 }
 
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf)
 {
+  acquire();
   SimpleDisk::write(_block_no, _buf);
+  release();
 }
 
 /*--------------------------------------------------------------------------*/

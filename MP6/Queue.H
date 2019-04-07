@@ -99,7 +99,11 @@ public:
     empty but blocking queue maintinaed by disk can be empty. This will indicates
     that there are no pending IO threads in the system.
   */
-  bool isEmpty(){return (nThreads > 0);}
+  bool isEmpty()
+	{
+		if(nThreads <= 0) return true;
+		else return false;
+	}
 
 };
 
