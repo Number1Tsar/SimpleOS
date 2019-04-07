@@ -20,6 +20,7 @@
 /* -- COMMENT/UNCOMMENT THE FOLLOWING LINE TO EXCLUDE/INCLUDE SCHEDULER CODE */
 
 #define _USES_SCHEDULER_
+//#define _MIRRORED_DISK_
 /* This macro is defined when we want to force the code below to use
    a scheduler.
    Otherwise, no scheduler is used, and the threads pass control to each
@@ -53,7 +54,11 @@
 #endif
 
 #include "blocking_disk.H"
+
+#ifdef _MIRRORED_DISK_
 #include "mirrored_disk.H"
+#endif
+
 #include "simple_disk.H"    /* DISK DEVICE */
                             /* YOU MAY NEED TO INCLUDE blocking_disk.H
 /*--------------------------------------------------------------------------*/
@@ -106,8 +111,13 @@ Scheduler * SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 
 /* -- A POINTER TO THE SYSTEM DISK */
-SimpleDisk * SYSTEM_DISK;
-//MirroredDisk * SYSTEM_DISK;
+
+#ifdef _MIRRORED_DISK_
+  MirroredDisk * SYSTEM_DISK;
+#else
+  SimpleDisk * SYSTEM_DISK;
+#endif
+
 
 #define SYSTEM_DISK_SIZE (10 MB)
 
@@ -310,9 +320,12 @@ int main() {
 #endif
 
     /* -- DISK DEVICE -- */
+    #ifdef _MIRRORED_DISK_
+      SYSTEM_DISK = new MirroredDisk(SYSTEM_DISK_SIZE);
+    #else
+      SYSTEM_DISK = new BlockingDisk(MASTER, SYSTEM_DISK_SIZE);
+    #endif
 
-    SYSTEM_DISK = new BlockingDisk(MASTER, SYSTEM_DISK_SIZE);
-    //SYSTEM_DISK = new MirroredDisk(SYSTEM_DISK_SIZE);
 
     /* NOTE: The timer chip starts periodically firing as
              soon as we enable interrupts.

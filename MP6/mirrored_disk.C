@@ -31,7 +31,9 @@ extern Scheduler* SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
-
+/*
+  Initializes Mirrored Disk. This disk has both master and slave
+*/
 MirroredDisk::MirroredDisk(unsigned int _size)
 {
   locked = false;
@@ -72,7 +74,10 @@ void MirroredDisk::release()
 /*--------------------------------------------------------------------------*/
 /* SIMPLE_DISK FUNCTIONS */
 /*--------------------------------------------------------------------------*/
-
+/*
+  Because an identical copy of data is maintained at both master and slave. READ
+  operation takes place only from Master.
+*/
 void MirroredDisk::read(unsigned long _block_no, unsigned char * _buf)
 {
   acquire();
@@ -90,7 +95,11 @@ void MirroredDisk::read(unsigned long _block_no, unsigned char * _buf)
   release();
 }
 
-
+/*
+  Write command is issued to both Master and Slave. This causes write operation
+  to take some time, however it improves the fault tolerance and redundancy of the
+  system
+*/
 void MirroredDisk::write(unsigned long _block_no, unsigned char * _buf)
 {
   acquire();
@@ -139,11 +148,20 @@ void MirroredDisk::wait_until_ready()
   }
 }
 
+/*
+  Check if controller is ready.
+*/
 bool MirroredDisk::is_ready()
 {
   return ((Machine::inportb(0x1F7) & 0x08) != 0);
 }
 
+/*
+  Issue operation requires driver to select disk drive, i.e, Master or Slave.
+  to select master issue 0xE0 command =  0xE0 | 0x00
+  to select slave issue 0xF0 command =  0xF0 | 0x01
+  Note: Slave disk id is 0x01.
+*/
 void MirroredDisk::issue_operation(DISK_OPERATION _op, DISK_ID disk_id, unsigned long _block_no)
 {
   Machine::outportb(0x1F1, 0x00); /* send NULL to port 0x1F1         */

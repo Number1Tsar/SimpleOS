@@ -42,12 +42,15 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
  */
 void BlockingDisk::acquire()
 {
+  /*
+    checks if locked is true. If yes adds to waiing Queue and yield the CPU.
+  */
   while(locked)
   {
     waitingQueue.push(Thread::CurrentThread());
-    Console::puts("Waiting for lock Thread ");
+    Console::puts("Thread ");
     Console::puti(Thread::CurrentThread()->ThreadId());
-    Console::puts("\n");
+    Console::puts(" is waiting for the lock\n");
     SYSTEM_SCHEDULER->yield();
   }
   locked = true;
