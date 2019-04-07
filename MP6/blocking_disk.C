@@ -57,6 +57,9 @@ void BlockingDisk::acquire()
 void BlockingDisk::release()
 {
   locked = false;
+   Console::puts("Thread ");
+  Console::puti(Thread::CurrentThread()->ThreadId());
+  Console::puts(" has released lock\n");
   if(!waitingQueue.isEmpty())
   {
     Thread* nextRunning = waitingQueue.pop();

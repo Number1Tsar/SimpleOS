@@ -60,7 +60,7 @@ public:
 /*
 	Push to the end of the Queue. This is achieved in O(1).
 */
-	void push(Thread*& thread)
+	void push(Thread* thread)
 	{
 		Node* newnode = new Node(thread);
 		if(head==NULL)
