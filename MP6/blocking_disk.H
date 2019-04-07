@@ -66,22 +66,6 @@ private:
 	*/
 	void release();
 
-	/*
-		The activeThread is a thread that is currently in the middle of an IO OPERATIONS
-		with disk but not in READY state. Please note that in my implementation only
-		one thread can possess a lock and any other threads trying to acquire a lock
-		will be store in a waitingQueue. Threfore there is no need to have an entire
-		queue of blocking threads. Only one placeholder will suffice and that place placeholder
-		is the activeThread below.
-		Whenever disk completes its rotation and positioning phase active thread is set to
-		READY state and pushed back to ready queue maintained by scheduler.
-	*/
-	Thread* activeThread;
-
- /*
- 		Indicates that the blocking disk is currently service a IO request from Thread;
- */
-	bool isActive;
 
 protected:
 	void wait_until_ready();
@@ -102,10 +86,6 @@ public:
 
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
-
-	 Thread* getDiskBlockedThread();
-
-	 bool is_disk_ready();
 
 };
 
