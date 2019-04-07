@@ -53,6 +53,7 @@
 #endif
 
 #include "blocking_disk.H"
+#inclde "mirrored_disk.H"
 #include "simple_disk.H"    /* DISK DEVICE */
                             /* YOU MAY NEED TO INCLUDE blocking_disk.H
 /*--------------------------------------------------------------------------*/
@@ -181,7 +182,7 @@ void fun2() {
 
        /* -- Display */
        Console::puts("Displaying\n");
-       for (int i = 0; i < DISK_BLOCK_SIZE; i++) 
+       for (int i = 0; i < DISK_BLOCK_SIZE; i++)
        {
            Console::puti(buf[i]);
        }
@@ -290,7 +291,8 @@ int main() {
 
     /* -- DISK DEVICE -- */
 
-    SYSTEM_DISK = new BlockingDisk(MASTER, SYSTEM_DISK_SIZE);
+    //SYSTEM_DISK = new BlockingDisk(MASTER, SYSTEM_DISK_SIZE);
+    SYSTEM_DISK = new MirroredDisk(SYSTEM_DISK_SIZE);
 
     /* NOTE: The timer chip starts periodically firing as
              soon as we enable interrupts.

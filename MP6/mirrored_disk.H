@@ -1,15 +1,15 @@
 /*
-     File        : blocking_disk.H
+     File        : mirrored_disk.H
 
-     Author      :
+     Author      : Sulav Adhikari
 
-     Date        :
+     Date        : 04-07-2019
      Description :
 
 */
 
-#ifndef _BLOCKING_DISK_H_
-#define _BLOCKING_DISK_H_
+#ifndef _MIRRORED_DISK_H_
+#define _MIRRORED_DISK_H_
 
 /*--------------------------------------------------------------------------*/
 /* DEFINES */
@@ -36,7 +36,7 @@
 /*--------------------------------------------------------------------------*/
 //class Queue;
 
-class BlockingDisk : public SimpleDisk
+class MirroredDisk : public SimpleDisk
 {
 private:
 	/*
@@ -66,16 +66,28 @@ private:
 	*/
 	void release();
 
+  /*
+    Mirrored disk maintains both master and slave disks.
+  */
+  DISK_ID master;
+  DISK_ID slave;
+
+  /*
+    A slightly modified version of issue operation. Does the same as simple disks
+    except this allows you to specify which drive to issue command to (Master or Slave)
+    I am rewrighting this method because issue_operation method is private to
+    simple_disk and I donot want to modify the SimpleDisk class at all.
+  */
+  void issue_operation(DISK_OPERATION _op, DISK_ID id, unsigned long _block_no);
+
 protected:
 	void wait_until_ready();
 
+  bool is_ready();
+
 public:
-   BlockingDisk(DISK_ID _disk_id, unsigned int _size);
-   /* Creates a BlockingDisk device with the given size connected to the
-      MASTER or SLAVE slot of the primary ATA controller.
-      NOTE: We are passing the _size argument out of laziness.
-      In a real system, we would infer this information from the
-      disk controller. */
+   MirroredDisk(unsigned int _size);
+
 
    /* DISK OPERATIONS */
 
