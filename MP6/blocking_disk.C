@@ -58,10 +58,10 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf)
 void BlockingDisk::wait_until_ready()
 {
 Console::puts("here\n");
-Thread *thread = Thread::CurrentThread();
-        Console::puts("queing thread\n");
-        SYSTEM_SCHEDULER->resume(thread);
-        SYSTEM_SCHEDULER->yield();
+//Thread *thread = Thread::CurrentThread();
+  //      Console::puts("queing thread\n");
+    //    SYSTEM_SCHEDULER->resume(thread);
+      //  SYSTEM_SCHEDULER->yield();
     if(!SimpleDisk::is_ready())
     {
         

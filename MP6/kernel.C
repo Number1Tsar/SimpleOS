@@ -105,7 +105,7 @@ Scheduler * SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 
 /* -- A POINTER TO THE SYSTEM DISK */
-BlockingDisk * SYSTEM_DISK;
+SimpleDisk * SYSTEM_DISK;
 
 #define SYSTEM_DISK_SIZE (10 MB)
 
@@ -182,7 +182,7 @@ void fun2() {
        /* -- Display */
 	Console::puts("showing\n");
        for (int i = 0; i < DISK_BLOCK_SIZE; i++) {
-           Console::putch(buf[i]);
+           Console::puti(buf[i]);
        }
 
        Console::puts("Writing a block to disk...\n");
