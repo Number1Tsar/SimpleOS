@@ -180,9 +180,8 @@ void fun2() {
        SYSTEM_DISK->read(read_block, buf);
 
        /* -- Display */
-	Console::puts("showing\n");
        for (int i = 0; i < DISK_BLOCK_SIZE; i++) {
-           Console::puti(buf[i]);
+           Console::putch(buf[i]);
        }
 
        Console::puts("Writing a block to disk...\n");

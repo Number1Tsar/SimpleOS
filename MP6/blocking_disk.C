@@ -55,19 +55,23 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf)
 /*--------------------------------------------------------------------------*/
 /* OVERWRIGHT VIRTUAL FUNCTIONS */
 /*--------------------------------------------------------------------------*/
+/*
+  This method polls the device controll to see if the IO request is completed.
+  If not completed the current thread is send back to the queue and CPU is given
+  to next thread.
+  Here scheduling is taking place strictly in FIFO order.
+  This thread waiting for IO gets back the CPU only after all other threads prior
+  to it are completed.
+*/
 void BlockingDisk::wait_until_ready()
 {
-Console::puts("here\n");
-//Thread *thread = Thread::CurrentThread();
-  //      Console::puts("queing thread\n");
-    //    SYSTEM_SCHEDULER->resume(thread);
-      //  SYSTEM_SCHEDULER->yield();
-    if(!SimpleDisk::is_ready())
-    {
-        
-Thread *thread = Thread::CurrentThread();
-        Console::puts("queing thread\n");
-        SYSTEM_SCHEDULER->resume(thread);
-        SYSTEM_SCHEDULER->yield();
-    }
+  while(!SimpleDisk::is_ready())
+  {
+    Thread *thread = Thread::CurrentThread();
+    Console::puts("Blocking thread ");
+    Console::puti(thread->ThreadId());
+    Console::puts("\n");
+    SYSTEM_SCHEDULER->resume(thread);
+    SYSTEM_SCHEDULER->yield();
+  }
 }
