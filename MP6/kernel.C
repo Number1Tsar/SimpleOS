@@ -53,7 +53,7 @@
 #endif
 
 #include "blocking_disk.H"
-#inclde "mirrored_disk.H"
+#include "mirrored_disk.H"
 #include "simple_disk.H"    /* DISK DEVICE */
                             /* YOU MAY NEED TO INCLUDE blocking_disk.H
 /*--------------------------------------------------------------------------*/
@@ -106,7 +106,8 @@ Scheduler * SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 
 /* -- A POINTER TO THE SYSTEM DISK */
-SimpleDisk * SYSTEM_DISK;
+//SimpleDisk * SYSTEM_DISK;
+MirroredDisk * SYSTEM_DISK;
 
 #define SYSTEM_DISK_SIZE (10 MB)
 

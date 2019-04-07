@@ -86,6 +86,7 @@ void MirroredDisk::read(unsigned long _block_no, unsigned char * _buf)
     _buf[i*2]   = (unsigned char)tmpw;
     _buf[i*2+1] = (unsigned char)(tmpw >> 8);
   }
+  Console::puts("Read from Master\n");
   release();
 }
 
@@ -102,6 +103,7 @@ void MirroredDisk::write(unsigned long _block_no, unsigned char * _buf)
     tmpw = _buf[2*i] | (_buf[2*i+1] << 8);
     Machine::outportw(0x1F0, tmpw);
   }
+  Console::puts("Written to Master\n");
   issue_operation(WRITE,slave,_block_no);
   wait_until_ready();
   for (i = 0; i < 256; i++)
@@ -109,6 +111,7 @@ void MirroredDisk::write(unsigned long _block_no, unsigned char * _buf)
     tmpw = _buf[2*i] | (_buf[2*i+1] << 8);
     Machine::outportw(0x1F0, tmpw);
   }
+  Console::puts("Written to Slave\n");
   release();
 }
 
@@ -125,7 +128,7 @@ void MirroredDisk::write(unsigned long _block_no, unsigned char * _buf)
 */
 void MirroredDisk::wait_until_ready()
 {
-  while(!SimpleDisk::is_ready())
+  while(!is_ready())
   {
     Thread *thread = Thread::CurrentThread();
     Console::puts("Blocking thread ");
@@ -136,7 +139,7 @@ void MirroredDisk::wait_until_ready()
   }
 }
 
-void MirroredDisk::is_ready()
+bool MirroredDisk::is_ready()
 {
   return ((Machine::inportb(0x1F7) & 0x08) != 0);
 }

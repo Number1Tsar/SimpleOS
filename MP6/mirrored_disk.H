@@ -32,11 +32,11 @@
 /* -- (none) -- */
 
 /*--------------------------------------------------------------------------*/
-/* B l o c k i n g D i s k  */
+/* M I R R O R E D D I S K  */
 /*--------------------------------------------------------------------------*/
 //class Queue;
 
-class MirroredDisk : public SimpleDisk
+class MirroredDisk
 {
 private:
 	/*
@@ -80,8 +80,7 @@ private:
   */
   void issue_operation(DISK_OPERATION _op, DISK_ID id, unsigned long _block_no);
 
-protected:
-	void wait_until_ready();
+  void wait_until_ready();
 
   bool is_ready();
 
