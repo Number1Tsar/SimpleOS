@@ -35,12 +35,14 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
   : SimpleDisk(_disk_id, _size)
 {
   locked = false;
-  Console::puts("Mutex is created\n");
+  activeThread = NULL;
+  isActive = false;
+  //Console::puts("Mutex is created\n");
 }
 
 void BlockingDisk::acquire()
 {
-  if(locked)
+  while(locked)
   {
     waitingQueue.push(Thread::CurrentThread());
     Console::puts("Waiting for lock Thread ");
@@ -57,7 +59,7 @@ void BlockingDisk::acquire()
 void BlockingDisk::release()
 {
   locked = false;
-   Console::puts("Thread ");
+  Console::puts("Thread ");
   Console::puti(Thread::CurrentThread()->ThreadId());
   Console::puts(" has released lock\n");
   if(!waitingQueue.isEmpty())
@@ -68,6 +70,16 @@ void BlockingDisk::release()
   }
 }
 
+Thread* BlockingDisk::getDiskBlockedThread()
+{
+  return activeThread;
+}
+
+bool BlockingDisk::is_disk_ready()
+{
+  return isActive && SimpleDisk::is_ready();
+}
+
 /*--------------------------------------------------------------------------*/
 /* SIMPLE_DISK FUNCTIONS */
 /*--------------------------------------------------------------------------*/
@@ -75,7 +87,9 @@ void BlockingDisk::release()
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf)
 {
   acquire();
+  isActive = true;
   SimpleDisk::read(_block_no, _buf);
+  isActive = false;
   release();
 }
 
@@ -83,7 +97,9 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf)
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf)
 {
   acquire();
+  isActive = true;
   SimpleDisk::write(_block_no, _buf);
+  isActive = false;
   release();
 }
 
@@ -106,7 +122,8 @@ void BlockingDisk::wait_until_ready()
     Console::puts("Blocking thread ");
     Console::puti(thread->ThreadId());
     Console::puts("\n");
-    SYSTEM_SCHEDULER->resume(thread);
+    activeThread = thread;
+    //SYSTEM_SCHEDULER->resume(thread);
     SYSTEM_SCHEDULER->yield();
   }
 }

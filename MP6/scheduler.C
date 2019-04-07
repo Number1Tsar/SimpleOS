@@ -21,6 +21,7 @@
 #include "console.H"
 #include "utils.H"
 #include "assert.H"
+#include "blocking_disk.H"
 #include "simple_keyboard.H"
 
 /*--------------------------------------------------------------------------*/
@@ -45,6 +46,8 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
+extern SimpleDisk * SYSTEM_DISK;
+
 /*
   Creates a Scheduler Object.
 */
@@ -59,7 +62,15 @@ Scheduler::Scheduler()
 */
 void Scheduler::yield()
 {
-  Thread* nextRunning = readyQueue.pop();
+  Thread* nextRunning;
+  if(SYSTEM_DISK->is_disk_ready())
+  {
+    nextRunning = SYSTEM_DISK->getDiskBlockedThread();
+  }
+  else
+  {
+    nextRunning = readyQueue.pop();
+  }
   Thread::dispatch_to(nextRunning);
 }
 
