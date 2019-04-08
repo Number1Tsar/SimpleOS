@@ -246,6 +246,7 @@ void fun3() {
     }
 }
 
+
 void fun4() {
     Console::puts("THREAD: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts("\n");
 
