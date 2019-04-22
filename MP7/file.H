@@ -46,7 +46,7 @@ private:
 
 public:
 
-	  inode* file_inode;
+	inode* file_inode;
     int current_pos;
 
     File(inode* _file_inode);

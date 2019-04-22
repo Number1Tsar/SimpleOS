@@ -22,7 +22,7 @@
 #include "console.H"
 #include "file.H"
 
-extern FileSystem * FILE_SYSTEM;
+
 /*--------------------------------------------------------------------------*/
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
@@ -45,10 +45,13 @@ int File::Read(unsigned int _n, char * _buf)
 {
     Console::puts("reading from file\n");
     int bytes_read = 0;
-    while(!Eof() && (_n>0))
+    char read_buffer[BLOCK_SIZE];
+    memset(read_buffer,0,BLOCK_SIZE);
+    while(!EoF() && (_n>0))
     {
-      char read_buffer[BLOCK_SIZE];
-      memset(read_buffer,0,BLOCK_SIZE);
+	  Console::puts("Reading from ");
+	  Console::puti(file_inode->blocks[current_pos]);
+	  Console::puts("\n");
       FILE_SYSTEM->disk->read(file_inode->blocks[current_pos++],(unsigned char*)read_buffer);
       if(_n>BLOCK_SIZE)
       {
@@ -58,13 +61,17 @@ int File::Read(unsigned int _n, char * _buf)
       }
       else
       {
-        memcpy(_buf+bytes_read,read_buffer,_n);
+        memcpy(_buf+bytes_read,(char*)read_buffer,_n);
         bytes_read += _n;
         _n = 0;
       }
     }
     Console::puti(bytes_read);
     Console::puts(" bytes of data read\n");
+    for(int i=0;i<bytes_read;i++)
+    {
+		Console::puti(_buf[i]);
+	}
     return bytes_read;
 }
 
@@ -72,27 +79,28 @@ int File::Read(unsigned int _n, char * _buf)
 void File::Write(unsigned int _n, const char * _buf)
 {
     Console::puts("writing to file\n");
-    while(Eof() && (_n > 0))
+    while(EoF() && (_n > 0))
     {
       int new_block = FILE_SYSTEM->findEmptyBlock();
+      FILE_SYSTEM->allocateBlock(new_block);
       file_inode->blocks[file_inode->num_blocks++] = new_block;
       char write_buffer[BLOCK_SIZE];
       memset(write_buffer,0,BLOCK_SIZE);
       if(_n > BLOCK_SIZE)
       {
           memcpy(write_buffer,_buf,BLOCK_SIZE);
-          FILE_SYSTEM->disk->write(BLOCK_SIZE,write_buffer);
+          FILE_SYSTEM->disk->write(BLOCK_SIZE,(unsigned char*)write_buffer);
           _n = _n - BLOCK_SIZE;
       }
       else
       {
           memcpy(write_buffer,_buf,_n);
-          FILE_SYSTEM->disk->write(_n,write_buffer);
+          FILE_SYSTEM->disk->write(_n,(unsigned char*)write_buffer);
           _n = 0;
       }
       current_pos++;
     }
-    FILE_SYSTEM->disk->write(file->inode->fd,(unsigned char*)file->inode);
+    FILE_SYSTEM->disk->write(file_inode->fd,(unsigned char*)file_inode);
     Console::puts("Data written to disk\n");
 }
 
@@ -113,7 +121,7 @@ void File::Rewrite()
 {
     Console::puts("erase content of file\n");
     current_pos = 0;
-    for(int i=0;i<file_inode->num_block;i++)
+    for(int i=0;i<file_inode->num_blocks;i++)
     {
       FILE_SYSTEM->freeBlock(file_inode->blocks[i]);
     }

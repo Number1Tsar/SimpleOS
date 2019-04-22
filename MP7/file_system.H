@@ -79,6 +79,9 @@ public:
     /*Sets the block_num as unallocated. Modifies the bitmap, does not do
     actual disk write*/
     void freeBlock(unsigned int block_num);
+    
+    /*Sets the block as allocated. Modifies the bitmap*/
+	void allocateBlock(unsigned int block_num);
 
     /* Returns the empty block number from disk */
     int findEmptyBlock();
@@ -90,7 +93,7 @@ public:
     /* Associates this file system with a disk. Limit to at most one file system per disk.
      Returns true if operation successful (i.e. there is indeed a file system on the disk.) */
 
-    bool Format(SimpleDisk * _disk, unsigned int _size);
+    static bool Format(SimpleDisk * _disk, unsigned int _size);
     /* Wipes any file system from the disk and installs an empty file system of given size. */
 
     File * LookupFile(int _file_id);

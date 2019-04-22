@@ -21,11 +21,14 @@
 #include "assert.H"
 #include "console.H"
 #include "file_system.H"
+//#include "simple_disk.H"
 
 
 /*--------------------------------------------------------------------------*/
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
+
+unsigned int FileSystem::size;
 
 FileSystem::FileSystem()
 {
@@ -67,13 +70,23 @@ void FileSystem::freeBlock(unsigned int block_num)
   bitmap[row] &= ~(1<<col);
 }
 
+void FileSystem::allocateBlock(unsigned int block_num)
+{
+  Console::puts("Allocating block ");
+  Console::puti(block_num);
+  Console::puts("\n");
+  int row = block_num/8;
+  int col = block_num%8;
+  bitmap[row] |= (1<<col);
+}
+
 /*
   Mounts the disk to the file system. Initializes the maximum number of blocks
   in disk, sets up bitmap table and file lookup table.
 */
 bool FileSystem::Mount(SimpleDisk * _disk)
 {
-    if(disk!=NULL) return false;
+    //if(disk!=NULL) return false;
     Console::puts("mounting file system form disk\n");
     disk = _disk;
     total_blocks = (size/BLOCK_SIZE);
@@ -96,10 +109,11 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
     Console::puts("formatting disk\n");
     char buffer[BLOCK_SIZE];
     memset(buffer,0,BLOCK_SIZE);
-    for(int i=0;i<_size;i++)
+    for(int i=0;i<10;i++)
     {
       Console::puts("Formatting block ");
       Console::puti(i);
+      Console::puts("\n");
       _disk->write(i,(unsigned char*)buffer);
     }
     FileSystem::size = _size;
@@ -144,9 +158,7 @@ bool FileSystem::CreateFile(int _file_id)
     inode* new_inode = (inode*)temp;
     new_inode->fd = empty_block;
     new_inode->num_blocks = 0;
-    int row = empty_block/8;
-    int col = empty_block%8;
-    bitmap[row] |= (1<<col);
+	allocateBlock(empty_block);
     disk->write(empty_block,temp);
     file_table[num_files].file_id = _file_id;
     file_table[num_files].fd = empty_block;
