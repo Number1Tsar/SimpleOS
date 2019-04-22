@@ -110,6 +110,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
     Console::puts("formatting disk\n");
     char buffer[BLOCK_SIZE];
     memset(buffer,0,BLOCK_SIZE);
+    /*
     for(int i=0;i<10;i++)
     {
       Console::puts("Formatting block ");
@@ -117,6 +118,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
       Console::puts("\n");
       _disk->write(i,(unsigned char*)buffer);
     }
+    */
     FileSystem::size = _size;
     return true;
 }

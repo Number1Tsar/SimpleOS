@@ -80,7 +80,7 @@ int File::Read(unsigned int _n, char * _buf)
 void File::Write(unsigned int _n, const char * _buf)
 {
     Console::puts("writing to file\n");
-    do
+    while(_n>0)
     {
       int new_block = FILE_SYSTEM->findEmptyBlock();
       FILE_SYSTEM->allocateBlock(new_block);
@@ -100,7 +100,11 @@ void File::Write(unsigned int _n, const char * _buf)
           _n = 0;
       }
       current_pos++;
-    }while(_n>0);
+    }
+    /*
+     Removing this print statement somehow breaks the code. IDK why
+    */
+    Console::puts("\n");
     FILE_SYSTEM->disk->write(file_inode->fd,(unsigned char*)file_inode);
     Console::puts("Data written to disk\n");
 }
@@ -133,6 +137,6 @@ void File::Rewrite()
 bool File::EoF()
 {
     Console::puts("testing end-of-file condition\n");
-    if(file_inode->num_blocks==0 || current_pos > file_inode->num_blocks) return true;
+    if(file_inode->num_blocks==0 || (current_pos > file_inode->num_blocks)) return true;
     else return false;
 }

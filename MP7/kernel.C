@@ -163,10 +163,16 @@ void exercise_file_system(FileSystem * _file_system) {
     File * file2 = _file_system->LookupFile(2);
     assert(file2 != NULL);
     
-    
+    char big[600];
+    for(int i=0;i<600;i++)
+    {
+		big[i]='x';
+	}
+   
     /* -- Write into File 1 -- */
     file1->Rewrite();
     file1->Write(20, STRING1);
+    file1->Write(600,big);
     
     /* -- Write into File 2 -- */
     
@@ -188,7 +194,12 @@ void exercise_file_system(FileSystem * _file_system) {
     for(int i = 0; i < 20; i++) {
         assert(result1[i] == STRING1[i]);
     }
-
+    memset(big,0,600);
+    assert(file1->Read(600,big)==600);
+    for(int i=0;i<600;i++)
+    {
+		assert(big[i]=='x');
+	}
     
     /* -- Read from File 2 and check result -- */
     file2->Reset();
