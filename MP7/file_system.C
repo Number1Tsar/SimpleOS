@@ -61,18 +61,14 @@ int FileSystem::findEmptyBlock()
 bool FileSystem::Mount(SimpleDisk * _disk)
 {
     Console::puts("mounting file system form disk\n");
-    if(disk==NULL)
-    {
-      disk = _disk;
-      return true;
-    }
-    return false;
+    return true;
 }
 
 bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
 {
     Console::puts("formatting disk\n");
     FileSystem::size = _size;
+    FileSystem::disk = _disk;
     FileSystem::total_blocks = (size/BLOCK_SIZE);
     Console::puts("Number of blocks ");
     Console::puti(total_blocks);
@@ -87,12 +83,15 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
     unsigned char buffer[BLOCK_SIZE];
     memset(buffer,0,BLOCK_SIZE);
     
-    for(unsigned long i=0;i<FileSystem::total_blocks;i++)
+
+    for(unsigned long i=0;i<5;i++)
     {
-	  Console::puts("Ok till here\n");
+		Console::puts("Ok till here\n");
       FileSystem::disk->write(i,(unsigned char*)buffer);
     }
-    FileSystem::disk->write(FileSystem::total_blocks,FileSystem::bitmap);
+    
+    
+    //FileSystem::disk->write(FileSystem::total_blocks,FileSystem::bitmap);
     Console::puts("done\n");
     return true;
 }
