@@ -72,6 +72,7 @@ private:
      unsigned char bitmap[BLOCK_SIZE];
      unsigned int total_blocks;
      map file_table[MAX_FILE_NUM];
+     int file_table_index;
      unsigned int num_files;
 
 public:

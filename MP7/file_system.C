@@ -96,7 +96,8 @@ bool FileSystem::Mount(SimpleDisk * _disk)
       file_table[i].fd = -1;
     }
     num_files = 0;
-    memset(bitmap,0,sizeof(BLOCK_SIZE));
+    file_table_index = -1;
+    memset(bitmap,0,BLOCK_SIZE);
     return true;
 }
 
@@ -120,12 +121,12 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
     return true;
 }
 
-File * FileSystem::LookupFile(int _file_id)
+File* FileSystem::LookupFile(int _file_id)
 {
     Console::puts("looking up file ");
     Console::puti(_file_id);
     Console::puts("\n");
-    for(int i=0;i<num_files;i++)
+    for(int i=0;i<MAX_FILE_NUM;i++)
     {
       if(file_table[i].file_id == _file_id)
       {
@@ -152,7 +153,9 @@ of disk)
 bool FileSystem::CreateFile(int _file_id)
 {
     if(LookupFile(_file_id)!=NULL) return false;
-    Console::puts("creating file\n");
+    Console::puts("creating file ");
+    Console::puti(_file_id);
+    Console::puts("\n");
     int empty_block = findEmptyBlock();
     unsigned char temp[BLOCK_SIZE];
     inode* new_inode = (inode*)temp;
@@ -160,23 +163,29 @@ bool FileSystem::CreateFile(int _file_id)
     new_inode->num_blocks = 0;
 	allocateBlock(empty_block);
     disk->write(empty_block,temp);
-    file_table[num_files].file_id = _file_id;
-    file_table[num_files].fd = empty_block;
+    file_table_index = (++file_table_index)%MAX_FILE_NUM;
+    file_table[file_table_index].file_id = _file_id;
+    file_table[file_table_index].fd = empty_block;
     num_files++;
-    Console::puts("file created\n");
+    Console::puti(num_files);
+    Console::puts(" file created\n");
     return true;
 }
 
 bool FileSystem::DeleteFile(int _file_id)
 {
-    Console::puts("deleting file\n");
+    Console::puts("deleting file ");
+    Console::puti(_file_id);
+    Console::puts("\n");
     File* f = LookupFile(_file_id);
     if(f==NULL) return false;
     int block_num = f->file_inode->fd;
-    int row = block_num/8;
-    int col = block_num%8;
-    bitmap[row] &= ~(1<<col);
-    for(int i=0;i<num_files;i++)
+    for(int i=0;i<f->file_inode->num_blocks;i++)
+    {
+		freeBlock(f->file_inode->blocks[i]);
+	}
+	freeBlock(block_num);
+    for(int i=0;i<MAX_FILE_NUM;i++)
     {
       if(file_table[i].file_id == _file_id)
       {
@@ -184,5 +193,10 @@ bool FileSystem::DeleteFile(int _file_id)
         file_table[i].fd = -1;
       }
     }
+    num_files--;
+    if(num_files==0) file_table_index =-1;
+    Console::puts("Files remaining ");
+    Console::puti(num_files);
+    Console::puts("\n");
     return true;
 }

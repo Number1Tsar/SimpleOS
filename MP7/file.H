@@ -74,6 +74,11 @@ public:
 
     bool EoF();
     /* Is the current location for the file at the end of the file? */
+    
+    /*
+		File destructor
+    */
+    ~File();
 
 };
 

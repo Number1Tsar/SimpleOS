@@ -37,6 +37,11 @@ File::File(inode* _file_inode)
     current_pos = 0;
 }
 
+File::~File()
+{
+	delete file_inode;
+}
+
 /*--------------------------------------------------------------------------*/
 /* FILE FUNCTIONS */
 /*--------------------------------------------------------------------------*/
@@ -68,10 +73,6 @@ int File::Read(unsigned int _n, char * _buf)
     }
     Console::puti(bytes_read);
     Console::puts(" bytes of data read\n");
-    for(int i=0;i<bytes_read;i++)
-    {
-		Console::puti(_buf[i]);
-	}
     return bytes_read;
 }
 
@@ -89,13 +90,13 @@ void File::Write(unsigned int _n, const char * _buf)
       if(_n > BLOCK_SIZE)
       {
           memcpy(write_buffer,_buf,BLOCK_SIZE);
-          FILE_SYSTEM->disk->write(BLOCK_SIZE,(unsigned char*)write_buffer);
+          FILE_SYSTEM->disk->write(new_block,(unsigned char*)write_buffer);
           _n = _n - BLOCK_SIZE;
       }
       else
       {
           memcpy(write_buffer,_buf,_n);
-          FILE_SYSTEM->disk->write(_n,(unsigned char*)write_buffer);
+          FILE_SYSTEM->disk->write(new_block,(unsigned char*)write_buffer);
           _n = 0;
       }
       current_pos++;
