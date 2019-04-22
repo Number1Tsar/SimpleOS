@@ -68,15 +68,20 @@ private:
      /* -- DEFINE YOUR FILE SYSTEM DATA STRUCTURES HERE. */
 
      SimpleDisk * disk;
-     unsigned int size;
+     static unsigned int size;
      unsigned char bitmap[BLOCK_SIZE];
      unsigned int total_blocks;
      map file_table[MAX_FILE_NUM];
      unsigned int num_files;
 
-     int findEmptyBlock();
-
 public:
+
+    /*Sets the block_num as unallocated. Modifies the bitmap, does not do
+    actual disk write*/
+    void freeBlock(unsigned int block_num);
+
+    /* Returns the empty block number from disk */
+    int findEmptyBlock();
 
     FileSystem();
     /* Just initializes local data structures. Does not connect to disk yet. */

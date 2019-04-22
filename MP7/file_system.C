@@ -32,7 +32,6 @@ FileSystem::FileSystem()
     Console::puts("In file system constructor.\n");
     disk = NULL;
     total_blocks = 0;
-    size = 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -45,7 +44,7 @@ int FileSystem::findEmptyBlock()
   {
     for(int j=0;j<8;j++)
     {
-      if((bitmap[i] && (1<<j)) == 0)
+      if((bitmap[i] & (1<<j)) == 0)
       {
         int block_no = i*8+j;
         Console::puts("found block number ");
@@ -58,54 +57,70 @@ int FileSystem::findEmptyBlock()
   return -1;
 }
 
+void FileSystem::freeBlock(unsigned int block_num)
+{
+  Console::puts("Freeing block ");
+  Console::puti(block_num);
+  Console::puts("\n");
+  int row = block_num/8;
+  int col = block_num%8;
+  bitmap[row] &= ~(1<<col);
+}
+
+/*
+  Mounts the disk to the file system. Initializes the maximum number of blocks
+  in disk, sets up bitmap table and file lookup table.
+*/
 bool FileSystem::Mount(SimpleDisk * _disk)
 {
+    if(disk!=NULL) return false;
     Console::puts("mounting file system form disk\n");
+    disk = _disk;
+    total_blocks = (size/BLOCK_SIZE);
+    for(int i=0;i<MAX_FILE_NUM;i++)
+    {
+      file_table[i].file_id = -1;
+      file_table[i].fd = -1;
+    }
+    num_files = 0;
+    memset(bitmap,0,sizeof(BLOCK_SIZE));
     return true;
 }
 
+/*
+  Wipes out the disk and all of its content till size specified.
+  FileSystem will be initialized to operate on the same size provided.
+*/
 bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
 {
     Console::puts("formatting disk\n");
-    FileSystem::size = _size;
-    FileSystem::disk = _disk;
-    FileSystem::total_blocks = (size/BLOCK_SIZE);
-    Console::puts("Number of blocks ");
-    Console::puti(total_blocks);
-    Console::puts("\n");
-    for(int i=0;i<MAX_FILE_NUM;i++)
-    {
-      FileSystem::file_table[i].file_id = -1;
-      FileSystem::file_table[i].fd = -1;
-    }
-    FileSystem::num_files = 0;
-    memset(FileSystem::bitmap,0,BLOCK_SIZE);
-    unsigned char buffer[BLOCK_SIZE];
+    char buffer[BLOCK_SIZE];
     memset(buffer,0,BLOCK_SIZE);
-    
-
-    for(unsigned long i=0;i<5;i++)
+    for(int i=0;i<_size;i++)
     {
-		Console::puts("Ok till here\n");
-      FileSystem::disk->write(i,(unsigned char*)buffer);
+      Console::puts("Formatting block ");
+      Console::puti(i);
+      _disk->write(i,(unsigned char*)buffer);
     }
-    
-    
-    //FileSystem::disk->write(FileSystem::total_blocks,FileSystem::bitmap);
-    Console::puts("done\n");
+    FileSystem::size = _size;
     return true;
 }
 
 File * FileSystem::LookupFile(int _file_id)
 {
-    Console::puts("looking up file\n");
+    Console::puts("looking up file ");
+    Console::puti(_file_id);
+    Console::puts("\n");
     for(int i=0;i<num_files;i++)
     {
-      if(file_table[i].file_id ==  _file_id)
+      if(file_table[i].file_id == _file_id)
       {
-        Console::puts("File already exists\n");
+        Console::puts("File already exists in block ");
+        int block_num = file_table[i].fd;
+        Console::puti(block_num);
+        Console::puts("\n");
         unsigned char buffer[BLOCK_SIZE];
-        disk->read(file_table[i].fd,buffer);
+        disk->read(block_num,buffer);
         File* file = (File*) new File((inode*)buffer);
         return file;
       }
@@ -113,6 +128,13 @@ File * FileSystem::LookupFile(int _file_id)
     return NULL;
 }
 
+/*
+  Creates a new file in the file system.
+  The file name used is a simple integer, which is unique
+  across entire file system. When file is created this file name is
+  mapped to a file descriptor (in this implementation fd is same as block number
+of disk)
+*/
 bool FileSystem::CreateFile(int _file_id)
 {
     if(LookupFile(_file_id)!=NULL) return false;
@@ -122,7 +144,6 @@ bool FileSystem::CreateFile(int _file_id)
     inode* new_inode = (inode*)temp;
     new_inode->fd = empty_block;
     new_inode->num_blocks = 0;
-    //new_inode->blocks = unsigned int[MAX_BLOCKS];
     int row = empty_block/8;
     int col = empty_block%8;
     bitmap[row] |= (1<<col);

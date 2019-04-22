@@ -41,12 +41,12 @@ class File
 
 private:
     /* -- your file data structures here ... */
-    
+
     /* -- maybe it would be good to have a reference to the file system? */
 
 public:
 
-	inode* file_inode;
+	  inode* file_inode;
     int current_pos;
 
     File(inode* _file_inode);
