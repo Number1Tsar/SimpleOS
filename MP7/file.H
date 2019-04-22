@@ -32,17 +32,22 @@
 /*--------------------------------------------------------------------------*/
 /* class  F i l e   */
 /*--------------------------------------------------------------------------*/
+class FileSystem;
+struct inode;
+extern FileSystem * FILE_SYSTEM;
 
 class File
 {
 
 private:
     /* -- your file data structures here ... */
-    inode* file_inode;
-    int current_pos;
+    
     /* -- maybe it would be good to have a reference to the file system? */
 
 public:
+
+	inode* file_inode;
+    int current_pos;
 
     File(inode* _file_inode);
       /* you may need arguments here; maybe a pointer to the disk block

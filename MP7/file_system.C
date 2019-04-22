@@ -45,7 +45,7 @@ int FileSystem::findEmptyBlock()
   {
     for(int j=0;j<8;j++)
     {
-      if((total_blocks[i] && (1<<j)) == 0)
+      if((bitmap[i] && (1<<j)) == 0)
       {
         int block_no = i*8+j;
         Console::puts("found block number ");
@@ -72,25 +72,28 @@ bool FileSystem::Mount(SimpleDisk * _disk)
 bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
 {
     Console::puts("formatting disk\n");
-    size = _size;
-    total_blocks = (size/BLOCK_SIZE);
+    FileSystem::size = _size;
+    FileSystem::total_blocks = (size/BLOCK_SIZE);
     Console::puts("Number of blocks ");
     Console::puti(total_blocks);
     Console::puts("\n");
     for(int i=0;i<MAX_FILE_NUM;i++)
     {
-      file_table[i].file_id = -1;
-      file_table[i].fd = -1;
+      FileSystem::file_table[i].file_id = -1;
+      FileSystem::file_table[i].fd = -1;
     }
-    num_files = 0;
-    memset(bitmap,0,BLOCK_SIZE);
+    FileSystem::num_files = 0;
+    memset(FileSystem::bitmap,0,BLOCK_SIZE);
     unsigned char buffer[BLOCK_SIZE];
     memset(buffer,0,BLOCK_SIZE);
-    for(int i=0;i<total_blocks;i++)
+    
+    for(unsigned long i=0;i<FileSystem::total_blocks;i++)
     {
-      disk->write(i,buffer);
+	  Console::puts("Ok till here\n");
+      FileSystem::disk->write(i,(unsigned char*)buffer);
     }
-    disk->write(total_blocks,bitmap);
+    FileSystem::disk->write(FileSystem::total_blocks,FileSystem::bitmap);
+    Console::puts("done\n");
     return true;
 }
 
@@ -120,7 +123,7 @@ bool FileSystem::CreateFile(int _file_id)
     inode* new_inode = (inode*)temp;
     new_inode->fd = empty_block;
     new_inode->num_blocks = 0;
-    new_inode->blocks = new unsigned int[MAX_BLOCKS];
+    //new_inode->blocks = unsigned int[MAX_BLOCKS];
     int row = empty_block/8;
     int col = empty_block%8;
     bitmap[row] |= (1<<col);
@@ -135,7 +138,7 @@ bool FileSystem::CreateFile(int _file_id)
 bool FileSystem::DeleteFile(int _file_id)
 {
     Console::puts("deleting file\n");
-    File f = LookupFile(_file_id);
+    File* f = LookupFile(_file_id);
     if(f==NULL) return false;
     int block_num = f->file_inode->fd;
     int row = block_num/8;

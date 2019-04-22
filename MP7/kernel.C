@@ -256,7 +256,7 @@ void fun3() {
 
     Console::puts("FUN 3 INVOKED! <THIS THREAD EXERCISES THE FILE SYSTEM> \n");
 
-    assert(FileSystem::Format(SYSTEM_DISK, (1 MB)));
+    assert(FILE_SYSTEM->Format(SYSTEM_DISK, (1 MB)));
     
     assert(FILE_SYSTEM->Mount(SYSTEM_DISK));
            
@@ -376,8 +376,8 @@ int main() {
     Console::puts("DONE\n");
 
     Console::puts("CREATING THREAD 3...");
-    char * stack3 = new char[1024];
-    thread3 = new Thread(fun3, stack3, 1024);
+    char * stack3 = new char[4096];
+    thread3 = new Thread(fun3, stack3, 4096);
     Console::puts("DONE\n");
 
     Console::puts("CREATING THREAD 4...");

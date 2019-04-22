@@ -32,7 +32,7 @@ File::File(inode* _file_inode)
     /* We will need some arguments for the constructor, maybe pointer to disk
      block with file management and allocation data. */
     Console::puts("In file constructor.\n");
-    file_inode = (file_inode*) new file_inode();
+    file_inode = (inode*) new inode();
     memcpy((unsigned char*)file_inode,(unsigned char*)_file_inode,sizeof(inode));
     current_pos = 0;
 }
