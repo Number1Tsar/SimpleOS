@@ -54,9 +54,9 @@ int File::Read(unsigned int _n, char * _buf)
     memset(read_buffer,0,BLOCK_SIZE);
     while(!EoF() && (_n>0))
     {
-	  Console::puts("Reading from ");
-	  Console::puti(file_inode->blocks[current_pos]);
-	  Console::puts("\n");
+	    Console::puts("Reading from block ");
+	    Console::puti(file_inode->blocks[current_pos]);
+	    Console::puts("\n");
       FILE_SYSTEM->disk->read(file_inode->blocks[current_pos++],(unsigned char*)read_buffer);
       if(_n>BLOCK_SIZE)
       {
@@ -80,7 +80,7 @@ int File::Read(unsigned int _n, char * _buf)
 void File::Write(unsigned int _n, const char * _buf)
 {
     Console::puts("writing to file\n");
-    while(EoF() && (_n > 0))
+    do
     {
       int new_block = FILE_SYSTEM->findEmptyBlock();
       FILE_SYSTEM->allocateBlock(new_block);
@@ -100,7 +100,7 @@ void File::Write(unsigned int _n, const char * _buf)
           _n = 0;
       }
       current_pos++;
-    }
+    }while(_n>0);
     FILE_SYSTEM->disk->write(file_inode->fd,(unsigned char*)file_inode);
     Console::puts("Data written to disk\n");
 }
