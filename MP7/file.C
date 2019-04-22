@@ -27,6 +27,10 @@
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
 
+/*
+  Creates a file object. Requires a pointer to inode that file is pointing to.
+  Does a deep copy of inode information.
+*/
 File::File(inode* _file_inode)
 {
     /* We will need some arguments for the constructor, maybe pointer to disk
@@ -37,6 +41,9 @@ File::File(inode* _file_inode)
     current_pos = 0;
 }
 
+/*
+  Deletes file. Cleans resources
+*/
 File::~File()
 {
 	delete file_inode;
@@ -46,6 +53,9 @@ File::~File()
 /* FILE FUNCTIONS */
 /*--------------------------------------------------------------------------*/
 
+/*
+  Reads from disk and write to _buf. Returns the number of bytes read.
+*/
 int File::Read(unsigned int _n, char * _buf)
 {
     Console::puts("reading from file\n");
@@ -76,7 +86,15 @@ int File::Read(unsigned int _n, char * _buf)
     return bytes_read;
 }
 
-
+/*
+  Writes the _n bytes from _buf to disk. Allocates a new block for every call.
+  If byte size is large may write to multiple block. Updates the inode accordingly.
+  Yes, allocating a new block for every call does cause heavy internal fragmentation, but
+  this is the most simplest way of solving this :P
+  Alternatively, one can create a buffer of BLOCK_SIZE and write to the buffer on every write call.
+  Once the buffer size is maxed out, then write it to disk. If the file size is acutually small, then
+  write to disk on file close operation. This way unnecessary internal fragmentation can be solved.
+*/
 void File::Write(unsigned int _n, const char * _buf)
 {
     Console::puts("writing to file\n");
@@ -102,7 +120,9 @@ void File::Write(unsigned int _n, const char * _buf)
       current_pos++;
     }
     /*
-     Removing this print statement somehow breaks the code. IDK why
+     Removing this print statement somehow breaks the code. IDK why.
+     Maybe because there needs to be a significant delay between the disk->write
+     operation. Tested this implementation in Virtual Box emulator.
     */
     Console::puts("\n");
     FILE_SYSTEM->disk->write(file_inode->fd,(unsigned char*)file_inode);
@@ -133,7 +153,9 @@ void File::Rewrite()
     file_inode->num_blocks = 0;
 }
 
-
+/*
+  Checks if End of File has been reached. Returns true if so.
+*/
 bool File::EoF()
 {
     Console::puts("testing end-of-file condition\n");

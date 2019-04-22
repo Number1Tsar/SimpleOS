@@ -46,7 +46,14 @@ private:
 
 public:
 
-	inode* file_inode;
+		/*
+			Each file maintains a pointer to inode. Essentially, a file is just an user abstracted view of inode.
+		*/
+		inode* file_inode;
+
+		/*
+			Points to the current block in file.
+		*/
     int current_pos;
 
     File(inode* _file_inode);
@@ -74,7 +81,7 @@ public:
 
     bool EoF();
     /* Is the current location for the file at the end of the file? */
-    
+
     /*
 		File destructor
     */

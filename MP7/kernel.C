@@ -20,9 +20,9 @@
 /* -- COMMENT/UNCOMMENT THE FOLLOWING LINE TO EXCLUDE/INCLUDE SCHEDULER CODE */
 
 //#define _USES_SCHEDULER_
-/* This macro is defined when we want to force the code below to use 
+/* This macro is defined when we want to force the code below to use
    a scheduler.
-   Otherwise, no scheduler is used, and the threads pass control to each 
+   Otherwise, no scheduler is used, and the threads pass control to each
    other in a co-routine fashion.
 */
 
@@ -38,7 +38,7 @@
 #include "gdt.H"
 #include "idt.H"             /* EXCEPTION MGMT.   */
 #include "irq.H"
-#include "exceptions.H"     
+#include "exceptions.H"
 #include "interrupts.H"
 
 #include "simple_timer.H"    /* TIMER MANAGEMENT  */
@@ -128,7 +128,7 @@ void pass_on_CPU(Thread * _to_thread) {
 
         /* We don't use a scheduler. Explicitely pass control to the next
            thread in a co-routine fashion. */
-	Thread::dispatch_to(_to_thread); 
+	Thread::dispatch_to(_to_thread);
 
 #else
 
@@ -136,7 +136,7 @@ void pass_on_CPU(Thread * _to_thread) {
            we pre-empt the current thread by putting it onto the ready
            queue and yielding the CPU. */
 
-        SYSTEM_SCHEDULER->resume(Thread::CurrentThread()); 
+        SYSTEM_SCHEDULER->resume(Thread::CurrentThread());
         SYSTEM_SCHEDULER->yield();
 #endif
 }
@@ -146,47 +146,47 @@ void pass_on_CPU(Thread * _to_thread) {
 /*--------------------------------------------------------------------------*/
 
 void exercise_file_system(FileSystem * _file_system) {
-    
+
     const char * STRING1 = "01234567890123456789";
     const char * STRING2 = "abcdefghijabcdefghij";
-    
+
     /* -- Create two files -- */
-    
+
     assert(_file_system->CreateFile(1));
     assert(_file_system->CreateFile(2));
-    
+
     /* -- "Open" the two files -- */
-    
+
     File * file1 = _file_system->LookupFile(1);
     assert(file1 != NULL);
-    
+
     File * file2 = _file_system->LookupFile(2);
     assert(file2 != NULL);
-    
-    char big[600];
-    for(int i=0;i<600;i++)
+
+    char big[630];
+    for(int i=0;i<630;i++)
     {
 		big[i]='x';
-	}
-   
+	  }
+
     /* -- Write into File 1 -- */
     file1->Rewrite();
     file1->Write(20, STRING1);
-    file1->Write(600,big);
-    
+    file1->Write(630,big);
+
     /* -- Write into File 2 -- */
-    
+
     file2->Rewrite();
     file2->Write(20, STRING2);
-    
+
     /* -- "Close" files -- */
     delete file1;
     delete file2;
-    
+
     /* -- "Open files again -- */
     file1 = _file_system->LookupFile(1);
     file2 = _file_system->LookupFile(2);
-    
+
     /* -- Read from File 1 and check result -- */
     file1->Reset();
     char result1[30];
@@ -194,13 +194,13 @@ void exercise_file_system(FileSystem * _file_system) {
     for(int i = 0; i < 20; i++) {
         assert(result1[i] == STRING1[i]);
     }
-    memset(big,0,600);
-    assert(file1->Read(600,big)==600);
-    for(int i=0;i<600;i++)
+    memset(big,0,630);
+    assert(file1->Read(630,big)==630);
+    for(int i=0;i<630;i++)
     {
 		assert(big[i]=='x');
 	}
-    
+
     /* -- Read from File 2 and check result -- */
     file2->Reset();
     char result2[30];
@@ -208,15 +208,15 @@ void exercise_file_system(FileSystem * _file_system) {
     for(int i = 0; i < 20; i++) {
         assert(result2[i] == STRING2[i]);
     }
-    
+
     /* -- "Close" files again -- */
     delete file1;
     delete file2;
-    
+
     /* -- Delete both files -- */
     assert(_file_system->DeleteFile(1));
     assert(_file_system->DeleteFile(2));
-    
+
 }
 
 /*--------------------------------------------------------------------------*/
@@ -258,7 +258,7 @@ void fun2() {
        for (int i = 0; i < 10; i++) {
            Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
        }
-        
+
        /* -- Give up the CPU */
        pass_on_CPU(thread3);
     }
@@ -270,15 +270,15 @@ void fun3() {
     Console::puts("FUN 3 INVOKED! <THIS THREAD EXERCISES THE FILE SYSTEM> \n");
 
     assert(FileSystem::Format(SYSTEM_DISK, (1 MB)));
-    
+
     assert(FILE_SYSTEM->Mount(SYSTEM_DISK));
-           
+
     for(int j = 0;; j++) {
-        
+
         Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
-        
+
         exercise_file_system(FILE_SYSTEM);
-        
+
         /* -- Give up the CPU */
         pass_on_CPU(thread4);
     }
@@ -334,16 +334,16 @@ int main() {
     /* ---- Initialize a frame pool; details are in its implementation */
     FramePool system_frame_pool;
     SYSTEM_FRAME_POOL = &system_frame_pool;
-   
+
     /* ---- Create a memory pool of 256 frames. */
     MemPool memory_pool(SYSTEM_FRAME_POOL, 256);
     MEMORY_POOL = &memory_pool;
 
     /* -- MEMORY ALLOCATOR SET UP. WE CAN NOW USE NEW/DELETE! -- */
-    
+
     /* -- INITIALIZE THE TIMER (we use a very simple timer).-- */
 
-    /* Question: Why do we want a timer? We have it to make sure that 
+    /* Question: Why do we want a timer? We have it to make sure that
                  we enable interrupts correctly. If we forget to do it,
                  the timer "dies". */
 
@@ -354,19 +354,19 @@ int main() {
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
-  
+
     SYSTEM_SCHEDULER = new Scheduler();
-    
+
 #endif
 
     /* -- DISK DEVICE -- */
 
     SYSTEM_DISK = new SimpleDisk(MASTER, SYSTEM_DISK_SIZE);
-    
-    /* NOTE: The timer chip starts periodically firing as 
+
+    /* NOTE: The timer chip starts periodically firing as
              soon as we enable interrupts.
-             It is important to install a timer handler, as we 
-             would get a lot of uncaptured interrupts otherwise. */  
+             It is important to install a timer handler, as we
+             would get a lot of uncaptured interrupts otherwise. */
 
     /* -- ENABLE INTERRUPTS -- */
 
@@ -414,7 +414,7 @@ int main() {
     Thread::dispatch_to(thread1);
 
     /* -- AND ALL THE REST SHOULD FOLLOW ... */
- 
+
     assert(false); /* WE SHOULD NEVER REACH THIS POINT. */
 
     /* -- WE DO THE FOLLOWING TO KEEP THE COMPILER HAPPY. */

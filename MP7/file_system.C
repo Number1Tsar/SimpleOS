@@ -41,6 +41,9 @@ FileSystem::FileSystem()
 /* FILE SYSTEM FUNCTIONS */
 /*--------------------------------------------------------------------------*/
 
+/*
+  Finds the next empty block in the disk. Returns the block number of the disk
+*/
 int FileSystem::findEmptyBlock()
 {
   for(int i=0;i<total_blocks/8;i++)
@@ -60,6 +63,9 @@ int FileSystem::findEmptyBlock()
   return -1;
 }
 
+/*
+  Marks the block in the bitmap as unallocated
+*/
 void FileSystem::freeBlock(unsigned int block_num)
 {
   Console::puts("Freeing block ");
@@ -70,6 +76,9 @@ void FileSystem::freeBlock(unsigned int block_num)
   bitmap[row] &= ~(1<<col);
 }
 
+/*
+  Marks the block in the bitmap as allocated.
+*/
 void FileSystem::allocateBlock(unsigned int block_num)
 {
   Console::puts("Allocating block ");
@@ -86,7 +95,6 @@ void FileSystem::allocateBlock(unsigned int block_num)
 */
 bool FileSystem::Mount(SimpleDisk * _disk)
 {
-    //if(disk!=NULL) return false;
     Console::puts("mounting file system form disk\n");
     disk = _disk;
     total_blocks = (size/BLOCK_SIZE);
@@ -111,7 +119,12 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
     char buffer[BLOCK_SIZE];
     memset(buffer,0,BLOCK_SIZE);
     /*
-    for(int i=0;i<10;i++)
+      At this stage, we are supposed to actual clean the blocks in the disk.
+      This works fine for few blocks but not for large block size.
+      Uncomment the following lines to actually format the disk.
+    */
+    /*
+    for(int i=0;i<BLOCK_SIZE;i++)
     {
       Console::puts("Formatting block ");
       Console::puti(i);
@@ -123,6 +136,11 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size)
     return true;
 }
 
+
+/*
+  Searches for the file in the file_table based on the logical (file name) given.
+  If found returns the File,else returns NULL
+*/
 File* FileSystem::LookupFile(int _file_id)
 {
     Console::puts("looking up file ");
@@ -174,6 +192,12 @@ bool FileSystem::CreateFile(int _file_id)
     return true;
 }
 
+/*
+  Deletes the file from the filesystem. Frees all the blocks associated with it.
+  Does not perform a disk write to clean the blocks, instead identifies the blocks
+  to be unallocated so that they could be reused for next write operation.
+  This way disk write call is saved.
+*/
 bool FileSystem::DeleteFile(int _file_id)
 {
     Console::puts("deleting file ");
