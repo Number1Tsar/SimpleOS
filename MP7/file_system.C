@@ -181,7 +181,7 @@ bool FileSystem::CreateFile(int _file_id)
     inode* new_inode = (inode*)temp;
     new_inode->fd = empty_block;
     new_inode->num_blocks = 0;
-	allocateBlock(empty_block);
+	  allocateBlock(empty_block);
     disk->write(empty_block,temp);
     file_table_index = (++file_table_index)%MAX_FILE_NUM;
     file_table[file_table_index].file_id = _file_id;
